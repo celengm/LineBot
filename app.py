@@ -123,6 +123,7 @@ def callback():
     # handle webhook body
     try:
         Pool.map_async(handler.handle, zip(body, signature))
+        Pool.join()
         # handler.handle(body, signature) - Single Thread
     except exceptions.InvalidSignatureError:
         abort(400)
