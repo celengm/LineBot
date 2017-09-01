@@ -16,7 +16,10 @@ class error(object):
             return u'沒有內容。.'
 
     class main(object):
-        
+        @staticmethod
+        def incorrect_password():
+            return u'密碼錯誤。'
+
         @staticmethod
         def invalid_thing(name_of_thing, thing):
             return u'不合法的{}: {}。請查看使用說明書( {} )。'.format(name_of_thing, thing, error.user_manual_url)

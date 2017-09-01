@@ -443,11 +443,12 @@ class text_msg(object):
 
                 if action in action_dict:
                     settarget = action_dict[action]
+                    result = self.gb.set_silence(gid, str(settarget), pw)
 
-                    if self.gb.set_silence(gid, str(settarget), pw):
+                    if result:
                         text = u'群組自動回覆功能已{}。\n\n群組/房間ID: {}'.format(status_silence[settarget], gid)
                     else:
-                        text = u'群組靜音設定變更失敗。\n\n群組/房間ID: {}'.format(gid)
+                        text = u'群組靜音設定變更失敗。\n錯誤: {}\n\n群組/房間ID: {}\n'.format(gid, result)
                 else:
                     text = error.main.invalid_thing(u'參數1(動作)', action)
             # Set new admin/moderator 
@@ -486,32 +487,6 @@ class text_msg(object):
                         text = error.main.invalid_thing(u'參數1(動作)', action)
                 else:
                     text = error.main.line_account_data_not_found()
-            # Add new group - only execute when data not found
-            elif perm >= 3 and param_count == 4:
-                action = params[1]
-                gid = params[2]
-                uid = params[3]
-                pw = params[4]
-                
-                if action != 'N':
-                    text = error.main.invalid_thing(u'參數1(動作)', action)
-                else:
-                    group_data_test = self.gb.get_group_by_id(gid)
-                    if len(group_data_test) > 0:
-                        text = u'群組資料已存在。'
-                    else:
-                        line_profile = self.api_proc.profile(uid)
-
-                        if line_profile is not None:
-                            if self.gb.new_data(gid, uid, pw):
-                                text = u'群組資料註冊成功。\n'
-                                text += u'群組ID: {}'.format(gid)
-                                text += u'群組管理員ID: {}'.format(uid)
-                                text += u'群組管理員名稱: {}'.format(line_profile.display_name)
-                            else:
-                                text = u'群組資料註冊失敗。'
-                        else:
-                            text = error.main.line_account_data_not_found()
         else:
             text = error.main.incorrect_channel()
 
