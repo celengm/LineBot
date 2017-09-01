@@ -122,9 +122,7 @@ def callback():
     app.logger.info("Request body: " + body)
     # handle webhook body
     try:
-        Pool.map_async(handler.handle, zip(body, signature))
-        Pool.join()
-        # handler.handle(body, signature) - Single Thread
+        handler.handle(body, signature)
     except exceptions.InvalidSignatureError:
         abort(400)
 
