@@ -471,8 +471,9 @@ class text_msg(object):
 
                     if line_profile is not None:
                         result = action_dict[action][0](gid, new_uid, pw, new_pw)
+                        position = action_dict[action][1]
+
                         if isinstance(result, (str, unicode)) and result:
-                            position = action_dict[action][1]
 
                             text = u'{}已變更。\n'.format(position)
                             text += u'群組/房間ID: {}\n\n'.format(gid)
@@ -481,22 +482,22 @@ class text_msg(object):
                             text += u'新{}密碼: {}\n'.format(position, new_pw)
                             text += u'請記好密碼，嚴禁洩漏，或在群頻中直接開關群組自動回覆功能！'
                         else:
-                            text = u'{}變更失敗。\n錯誤: {}'.format(pos_name[action], result)
+                            text = u'{}變更失敗。\n錯誤: {}'.format(position, result)
                     else:
                         text = error.main.line_account_data_not_found()
                 elif action.startswith('D'):
                     action_dict = {legal_action[4]: (self.gb.set_mod1, u'群組副管 1'),
                                    legal_action[5]: (self.gb.set_mod2, u'群組副管 2'),
                                    legal_action[6]: (self.gb.set_mod3, u'群組副管 3')}
+                    position = action_dict[action][1]
 
                     result = action_dict[action][0](gid, new_uid, pw, new_pw)
                     if isinstance(result, (str, unicode)) and result:
-                        position = action_dict[action][1]
 
                         text = u'{}已刪除。\n'.format(position)
-                        text += u'群組/房間ID: {}\n\n'.format(gid)
+                        text += u'群組/房間ID: {}'.format(gid)
                     else:
-                        text = u'{}刪除失敗。\n錯誤: {}'.format(pos_name[action], result)
+                        text = u'{}刪除失敗。\n錯誤: {}'.format(position, result)
                 else:
                     text = error.main.invalid_thing(u'指令', action)
         else:
