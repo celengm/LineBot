@@ -473,7 +473,7 @@ class text_msg(object):
                         result = action_dict[action][0](gid, new_uid, pw, new_pw)
                         position = action_dict[action][1]
 
-                        if isinstance(result, (str, unicode)) and result:
+                        if not isinstance(result, (str, unicode)) and result:
 
                             text = u'{}已變更。\n'.format(position)
                             text += u'群組/房間ID: {}\n\n'.format(gid)
@@ -492,7 +492,7 @@ class text_msg(object):
                     position = action_dict[action][1]
 
                     result = action_dict[action][0](gid, new_uid, pw, new_pw)
-                    if isinstance(result, (str, unicode)) and result:
+                    if not isinstance(result, (str, unicode)) and result:
 
                         text = u'{}已刪除。\n'.format(position)
                         text += u'群組/房間ID: {}'.format(gid)
