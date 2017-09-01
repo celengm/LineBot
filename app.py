@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from error import error
 from flask import Flask, request, url_for
 from math import *
-from multiprocessing.dummy import Pool as ThreadPool
+import threading
 
 # import for Oxford Dictionary
 import httplib
@@ -55,7 +55,6 @@ msg_track = message_tracker("postgres", os.environ["DATABASE_URL"])
 
 # Main initialization
 app = Flask(__name__)
-Pool = ThreadPool(4)
 sys_data = system_data()
 game_data = game_objects()
 
@@ -122,7 +121,12 @@ def callback():
     app.logger.info("Request body: " + body)
     # handle webhook body
     try:
-        handler.handle(body, signature)
+        # Single Thread
+        # handler.handle(body, signature)
+
+        # Multi Thread
+        HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        HandleThread.start()
     except exceptions.InvalidSignatureError:
         abort(400)
 
