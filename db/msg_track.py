@@ -3,6 +3,7 @@
 import os, sys
 from collections import defaultdict
 from error import error
+from enum import Enum
 
 import urlparse
 import psycopg2
@@ -45,46 +46,23 @@ class message_tracker(object):
     @property
     def table_structure(self):
         cmd = u'CREATE TABLE msg_track( \
-                    {} VARCHAR(33) PRIMARY KEY, \
-                    {} INTEGER NOT NULL DEFAULT 0, \
-                    {} INTEGER NOT NULL DEFAULT 0, \
-                    {} INTEGER NOT NULL DEFAULT 0, \
-                    {} INTEGER NOT NULL DEFAULT 0, \
-                    {} INTEGER NOT NULL DEFAULT 0, \
-                    {} INTEGER NOT NULL DEFAULT 0);'.format(*_col_list)
+                cid VARCHAR(33) PRIMARY KEY, \
+                text_msg INTEGER NOT NULL DEFAULT 0, \
+                text_msg_trig INTEGER NOT NULL DEFAULT 0, \
+                stk_msg INTEGER NOT NULL DEFAULT 0, \
+                stk_msg_trig INTEGER NOT NULL DEFAULT 0, \
+                text_rep INTEGER NOT NULL DEFAULT 0, \
+                stk_rep INTEGER NOT NULL DEFAULT 0, \
+                last_msg_recv TIMESTAMP NOT NULL DEFAULT NOW() AT TIME ZONE \'CCT\');'
         return cmd
 
     def log_message_activity(self, cid, type_of_event):
-        """
-        Type of Event:
-        1 = receive text message
-        2 = receive text message and auto reply system has been triggered
-        3 = receive sticker message
-        4 = receive sticker message and auto reply system has been triggered
-        5 = count of reply with text message
-        6 = count of reply with sticker message
-
-        None listed code of Type of Event and Illegal channel id length will raise ValueError.
-        """
         if len(cid) != self.channel_id_length:
             raise ValueError(error.main.incorrect_thing_with_correct_format(u'頻道ID', u'33字元長度', cid));
         else:
-            if type_of_event == 1:
-                update_last_message_recv = True
-            elif type_of_event == 2:
-                update_last_message_recv = True
-            elif type_of_event == 3:
-                update_last_message_recv = True
-            elif type_of_event == 4:
-                update_last_message_recv = True
-            elif type_of_event == 5:
+            update_last_message_recv = True
+            if type_of_event == msg_event_type.send_stk or type_of_event == msg_event_type.send_txt:
                 update_last_message_recv = False
-            elif type_of_event == 6:
-                update_last_message_recv = False
-            else:
-                raise ValueError();
-            
-            column_to_add = _col_list[type_of_event]
             
             cmd = u'SELECT * FROM msg_track WHERE cid = %(cid)s'
             cmd_dict = {'cid': cid}
@@ -92,9 +70,11 @@ class message_tracker(object):
             
             if len(result) < 1:
                 self.new_data(cid)
+            
+            column_to_add = msg_track_col(int(type_of_event)).column_name
 
             cmd = u'UPDATE msg_track SET {col} = {col} + 1{recv_time} WHERE cid = %(cid)s'.format(
-                recv_time=u', last_msg_recv = NOW()' if update_last_message_recv else u'',
+                recv_time=u', last_msg_recv = NOW() AT TIME ZONE \'CCT\'' if update_last_message_recv else u'',
                 col=column_to_add)
             self.sql_cmd(cmd, cmd_dict)
         
@@ -121,28 +101,17 @@ class message_tracker(object):
                 return None
 
     def count_sum(self):
-        """
-        Returns a dictionary contains data.
-
-        Keys(Data Description): 
-        text_msg = receive text message
-        text_msg_trig = receive text message and auto reply system has been triggered
-        stk_msg = receive sticker message
-        stk_msg_trig = receive sticker message and auto reply system has been triggered
-        text_rep = count of reply with text message
-        stk_rep = count of reply with sticker message
-        """
         results = defaultdict(int)
 
         cmd = u'SELECT MIN(last_msg_recv), SUM(text_msg), SUM(text_msg_trig), SUM(stk_msg), SUM(stk_msg_trig), SUM(text_rep), SUM(stk_rep) FROM msg_track'
         sql_result = self.sql_cmd_only(cmd)
         sql_result = sql_result[0]
-        results['text_msg'] = sql_result[msg_track_col.text_msg]
-        results['text_msg_trig'] = sql_result[msg_track_col.text_msg_trig]
-        results['stk_msg'] = sql_result[msg_track_col.stk_msg]
-        results['stk_msg_trig'] = sql_result[msg_track_col.stk_msg_trig]
-        results['text_rep'] = sql_result[msg_track_col.text_rep]
-        results['stk_rep'] = sql_result[msg_track_col.stk_rep]
+        results[msg_event_type.recv_txt] = sql_result[int(msg_track_col.text_msg)]
+        results[msg_event_type.recv_txt_repl] = sql_result[int(msg_track_col.text_msg_trig)]
+        results[msg_event_type.recv_stk] = sql_result[int(msg_track_col.stk_msg)]
+        results[msg_event_type.recv_stk_repl] = sql_result[int(msg_track_col.stk_msg_trig)]
+        results[msg_event_type.send_txt] = sql_result[int(msg_track_col.text_rep)]
+        results[msg_event_type.send_stk] = sql_result[int(msg_track_col.stk_rep)]
         return results
 
     def order_by_recorded_msg_count(self, limit=1000):
@@ -157,7 +126,7 @@ class message_tracker(object):
 
     @staticmethod
     def entry_detail(data, group_ban=None):
-        gid = data[msg_track_col.cid]
+        gid = data[int(msg_track_col.cid)]
 
         if group_ban is not None:
             if gid.startswith('U'):
@@ -165,16 +134,16 @@ class message_tracker(object):
             else:
                 group_data = group_ban.get_group_by_id(gid)
                 if group_data is not None:
-                    activation_status = u'停用回覆' if group_data[gb_col.silence] else u'啟用回覆'
+                    activation_status = u'停用回覆' if group_data[int(gb_col.silence)] else u'啟用回覆'
                 else:
                     activation_status = u'啟用回覆'
         else:
             activation_status = u'啟用回覆'
 
         text = u'群組/房間ID: {} 【{}】'.format(gid, activation_status)
-        text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[msg_track_col.text_msg], data[msg_track_col.stk_msg])
-        text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[msg_track_col.text_msg_trig], data[msg_track_col.stk_msg_trig])
-        text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[msg_track_col.text_rep], data[msg_track_col.stk_rep])
+        text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg)], data[int(msg_track_col.stk_msg)])
+        text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg_trig)], data[int(msg_track_col.stk_msg_trig)])
+        text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_rep)], data[int(msg_track_col.stk_rep)])
 
         return text
 
@@ -212,10 +181,33 @@ class message_tracker(object):
         )
         self.cur = self.conn.cursor()
 
-_col_list = ['cid', 
-             'text_msg',  'text_msg_trig', 
-             'stk_msg', 'stk_msg_trig', 
-             'text_rep', 'stk_rep',
-             'last_msg_recv']
-_col_tuple = collections.namedtuple('msg_track_col', _col_list)
-msg_track_col = _col_tuple(0, 1, 2, 3, 4, 5, 6, 7)
+
+class msg_track_col(Enum):
+    cid = 0, 'cid'
+    text_msg = 1, 'text_msg'
+    text_msg_trig = 2, 'text_msg_trig'
+    stk_msg = 3, 'stk_msg'
+    stk_msg_trig = 4, 'stk_msg_trig'
+    text_rep = 5, 'text_rep'
+    stk_rep = 6, 'stk_rep'
+    last_msg_recv = 7, 'last_msg_recv'
+
+    def __new__(cls, value, col_name):
+        member = object.__new__(cls)
+        member._value_ = value
+        member.column_name = col_name
+        return member
+
+    def __int__(self):
+        return self.value
+
+class msg_event_type(Enum):
+    recv_txt = 1
+    recv_txt_repl = 2
+    recv_stk = 3
+    recv_stk_repl = 4
+    send_txt = 5
+    send_stk = 6
+
+    def __int__(self):
+        return self.value

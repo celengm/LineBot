@@ -1,0 +1,9 @@
+﻿{% extends "Base.html" %}
+{% block title %} {{ Title }} {% endblock %}
+{% block content -%}
+<p>
+    {% for Content in Contents -%}
+    {{ Content|safe }}<br />
+    {%- endfor %}
+</p>
+{%- endblock %}

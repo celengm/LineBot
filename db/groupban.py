@@ -6,6 +6,7 @@ import urlparse
 import psycopg2
 from sqlalchemy.exc import IntegrityError
 import hashlib
+from enum import Enum
 
 import collections
 
@@ -43,16 +44,16 @@ class group_ban(object):
     @property
     def table_structure(self):
         cmd = u'CREATE TABLE group_ban( \
-                    {} VARCHAR(33) PRIMARY KEY, \
-                    {} BOOLEAN NOT NULL DEFAULT FALSE, \
-                    {} VARCHAR(33) NOT NULL, \
-                    {} VARCHAR(56) NOT NULL, \
-                    {} VARCHAR(33), \
-                    {} VARCHAR(56), \
-                    {} VARCHAR(33), \
-                    {} VARCHAR(56), \
-                    {} VARCHAR(33), \
-                    {} VARCHAR(56));'.format(*_col_list)
+                groupId VARCHAR(33) PRIMARY KEY, \
+                silence BOOLEAN NOT NULL DEFAULT FALSE, \
+                admin VARCHAR(33) NOT NULL, \
+                admin_sha VARCHAR(56) NOT NULL, \
+                moderator1 VARCHAR(33), \
+                moderator1_sha VARCHAR(56), \
+                moderator2 VARCHAR(33), \
+                moderator2_sha VARCHAR(56), \
+                moderator3 VARCHAR(33), \
+                moderator3_sha VARCHAR(56));'
         return cmd
 
     def new_data(self, groupId, adminUID, key_for_admin):
@@ -151,7 +152,7 @@ class group_ban(object):
     def is_group_set_to_silence(self, groupId):
         group = self.get_group_by_id(groupId)
         if group is not None:
-            return group[gb_col.silence]
+            return group[int(gb_col.silence)]
 
 
 
@@ -170,11 +171,17 @@ class group_ban(object):
         )
         self.cur = self.conn.cursor()
 
+class gb_col(Enum):
+    groupId = 0
+    silence = 1
+    admin = 2
+    admin_sha = 3
+    moderator1 = 4
+    moderator1_sha = 5
+    moderator2 = 6
+    moderator2_sha = 7
+    moderator3 = 8
+    moderator3_sha = 9
 
-_col_list = ['groupId', 'silence', 
-             'admin', 'admin_sha', 
-             'moderator1', 'moderator1_sha', 
-             'moderator2', 'moderator2_sha', 
-             'moderator3', 'moderator3_sha']
-_col_tuple = collections.namedtuple('gb_col', _col_list)
-gb_col = _col_tuple(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    def __int__(self):
+        return self.value

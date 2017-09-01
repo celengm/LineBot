@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from enum import Enum
 import os
 
 import urlparse
@@ -41,19 +41,20 @@ class kw_dict_mgr(object):
     @property
     def table_structure(self):
         cmd = u'CREATE TABLE keyword_dict( \
-                    {} SERIAL, \
-                    {} VARCHAR(500), \
-                    {} VARCHAR(500), \
-                    {} BOOLEAN NOT NULL DEFAULT FALSE, \
-                    {} BOOLEAN NOT NULL DEFAULT FALSE, \
-                    {} BOOLEAN NOT NULL DEFAULT FALSE, \
-                    {} INTEGER NOT NULL, \
-                    {} VARCHAR(33) NOT NULL, \
-                    {} BOOLEAN DEFAULT FALSE, \
-                    {} BOOLEAN DEFAULT FALSE, \
-                    {} TIMESTAMP DEFAULT NOW(), \
-                    {} TIMESTAMP, \
-                    {} VARCHAR(33);'.format(*_col_list)
+                id SERIAL, \
+                keyword VARCHAR(500), \
+                reply VARCHAR(500), \
+                deleted BOOLEAN NOT NULL DEFAULT FALSE, \
+                override BOOLEAN NOT NULL DEFAULT FALSE, \
+                admin BOOLEAN NOT NULL DEFAULT FALSE, \
+                used_count INTEGER NOT NULL, \
+                creator VARCHAR(33) NOT NULL, \
+                is_pic_reply BOOLEAN DEFAULT FALSE, \
+                is_sticker_kw BOOLEAN DEFAULT FALSE, \
+                deletor VARCHAR(33), \
+                created_time TIMESTAMP DEFAULT NOW() AT TIME ZONE \'CCT\', \
+                disabled_time TIMESTAMP, \
+                last_call TIMESTAMP);'
         return cmd
 
     def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
@@ -66,7 +67,7 @@ class kw_dict_mgr(object):
                     VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s) \
                     RETURNING *;'
             cmd_dict = {'kw': keyword, 'rep': reply, 'cid': creator_id, 'sys': is_top, 'stk_kw': is_sticker_kw, 'pic_rep': is_pic_reply}
-            cmd_override = u'UPDATE keyword_dict SET override = TRUE, deletor = %(dt)s, disabled_time = NOW() \
+            cmd_override = u'UPDATE keyword_dict SET override = TRUE, deletor = %(dt)s, disabled_time = NOW() AT TIME ZONE \'CCT\' \
                              WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND admin = %(adm)s'
             cmd_override_dict = {'kw': keyword, 'dt': creator_id, 'adm': is_top}
             self.sql_cmd(cmd_override, cmd_override_dict)
@@ -83,8 +84,8 @@ class kw_dict_mgr(object):
         db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw}
         result = self.sql_cmd(cmd, db_dict)
         if len(result) > 0:
-            cmd_update = u'UPDATE keyword_dict SET used_count = used_count + 1 WHERE id = %(id)s'
-            cmd_update_dict = {'id': result[0][kwdict_col.id]}
+            cmd_update = u'UPDATE keyword_dict SET used_count = used_count + 1, last_call = NOW() AT TIME ZONE \'CCT\' WHERE id = %(id)s AND (EXTRACT(EPOCH FROM (NOW() AT TIME ZONE \'CCT\' - last_call)) > 5 OR last_call IS NULL)'
+            cmd_update_dict = {'id': result[0][int(kwdict_col.id)]}
             self.sql_cmd(cmd_update, cmd_update_dict)
             return result
         else:
@@ -122,14 +123,14 @@ class kw_dict_mgr(object):
         result = self.sql_cmd(cmd, cmd_dict)
         return result
 
-    def order_by_usedrank(self, limit=1000):
+    def order_by_usedrank(self, limit=5000):
         cmd = u'SELECT *, RANK() OVER (ORDER BY used_count DESC) AS used_rank FROM keyword_dict ORDER BY used_rank ASC LIMIT %(limit)s;'
         cmd_dict = {'limit': limit}
         
         result = self.sql_cmd(cmd, cmd_dict)
         return result
 
-    def user_created_rank(self, limit=1000):
+    def user_created_rank(self, limit=50):
         """[0]=Rank, [1]=User ID, [2]=Count, [3]=Total Used Count, [4]=Used Count per Pair"""
         cmd = u' SELECT RANK() OVER (ORDER BY created_count DESC), *, ROUND(total_used / CAST(created_count as NUMERIC), 2) FROM (SELECT creator, COUNT(creator) AS created_count, SUM(used_count) AS total_used FROM keyword_dict GROUP BY creator ORDER BY created_count DESC) AS FOO LIMIT %(limit)s'
         cmd_dict = {'limit': limit}
@@ -142,15 +143,22 @@ class kw_dict_mgr(object):
         return result
 
     def least_used(self):
-        cmd = u'SELECT * FROM keyword_dict WHERE used_count = (SELECT MIN(used_count) FROM keyword_dict) AND override = FALSE AND deleted = FALSE;'
+        cmd = u'SELECT * FROM keyword_dict WHERE used_count = (SELECT MIN(used_count) FROM keyword_dict) AND override = FALSE AND deleted = FALSE ORDER BY id ASC'
         result = self.sql_cmd_only(cmd)
         return result
+
+    def recently_called(self, limit=10):
+        cmd = u'SELECT * FROM keyword_dict WHERE last_call IS NOT NULL ORDER BY last_call DESC LIMIT %(limit)s'
+        cmd_dict = {'limit': limit}
+        result = self.sql_cmd(cmd, cmd_dict)
+        return result
+
 
     def delete_keyword(self, keyword, deletor, is_top):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         cmd = u'UPDATE keyword_dict \
-                SET deleted = TRUE, deletor = %(dt)s, disabled_time = NOW() \
-                WHERE keyword = %(kw)s AND admin = %(top)s AND deleted = FALSE \
+                SET deleted = TRUE, deletor = %(dt)s, disabled_time = NOW() AT TIME ZONE \'CCT\' \
+                WHERE keyword = %(kw)s AND admin = %(top)s AND deleted = FALSE AND override = FALSE \
                 RETURNING *;'
         cmd_dict = {'kw': keyword, 'top': is_top, 'dt': deletor}
         result = self.sql_cmd(cmd, cmd_dict)
@@ -158,8 +166,8 @@ class kw_dict_mgr(object):
 
     def delete_keyword_id(self, id, deletor, is_top):
         cmd = u'UPDATE keyword_dict \
-                SET deleted = TRUE, deletor = %(dt)s, disabled_time = NOW() \
-                WHERE id = %(id)s AND admin = %(top)s AND deleted = FALSE \
+                SET deleted = TRUE, deletor = %(dt)s, disabled_time = NOW() AT TIME ZONE \'CCT\' \
+                WHERE id = %(id)s AND admin = %(top)s AND deleted = FALSE AND override = FALSE \
                 RETURNING *;'
                 
         cmd_dict = {'id': id, 'top': is_top, 'dt': deletor}
@@ -213,75 +221,85 @@ class kw_dict_mgr(object):
 
     
     @staticmethod
-    def entry_basic_info(entry_row):
-        text = u'ID: {}\n'.format(entry_row[kwdict_col.id])
-        kw = entry_row[kwdict_col.keyword].decode('utf8')
-        if not entry_row[kwdict_col.is_sticker_kw]:
-            text += u'關鍵字: {}\n'.format(kw)
-        else:
-            text += u'關鍵字: (貼圖ID: {})\n'.format(kw)
-        text += u'回覆{}: {}'.format(u'圖片URL' if entry_row[kwdict_col.is_pic_reply] else u'文字',
-                                     entry_row[kwdict_col.reply].decode('utf-8'))
-        return text
-
-    @staticmethod
-    def entry_detailed_info(kwd_mgr, line_api, entry_row):
-        detailed = kw_dict_mgr.entry_basic_info(entry_row) + u'\n\n'
-        detailed += u'屬性:\n'
-        detailed += u'{} {} {}\n\n'.format(u'[ 置頂 ]' if entry_row[kwdict_col.admin] else u'[ - ]',
-                                        u'[ 覆蓋 ]' if entry_row[kwdict_col.override] else u'[ - ]',
-                                        u'[ 刪除 ]' if entry_row[kwdict_col.deleted] else u'[ - ]')
-        detailed += u'呼叫次數: {} (第{}名)\n\n'.format(entry_row[kwdict_col.used_count], 
-                                                       kwd_mgr.used_count_rank(entry_row[kwdict_col.id]))
-
-        creator_profile = line_api.get_profile(entry_row[kwdict_col.creator])
-
-        detailed += u'製作者LINE使用者名稱:\n{}\n'.format(creator_profile.display_name)
-        detailed += u'製作者LINE UUID:\n{}\n'.format(entry_row[kwdict_col.creator])
-        detailed += u'製作時間:\n{} (UTC+0)'.format(entry_row[kwdict_col.created_time])
-
-        if entry_row[kwdict_col.deletor] is not None:
-            deletor_profile = line_api.get_profile(entry_row[kwdict_col.deletor])
-            detailed += u'\n刪除者LINE使用者名稱:\n{}\n'.format(deletor_profile.display_name)
-            detailed += u'刪除者LINE UUID:\n{}\n'.format(entry_row[kwdict_col.deletor])
-            detailed += u'刪除時間:\n{} (UTC+0)'.format(entry_row[kwdict_col.disabled_time])
-
-        return detailed
-    
-    @staticmethod
     def list_keyword(data, limit=25):
         """return two object to access by [\'limited\'] and [\'full\']."""
-        ret = {'limited': '', 'full': ''}
+        ret = {'limited': u'', 'full': u''}
         limited = False
         count = len(data)
-        ret['full'] = '共有{}筆結果\n\n'.format(count)
+        ret['full'] = u'共有{}筆結果\n\n'.format(count)
 
         if count <= 0:
             ret['limited'] = error.main.no_result()
         else:
             for index, row in enumerate(data, start=1):
-                text = 'ID: {} - {} {}{}{}\n'.format(
-                    row[kwdict_col.id],
-                    '(貼圖ID {})'.format(row[kwdict_col.keyword]) if row[kwdict_col.is_sticker_kw] else row[kwdict_col.keyword],
-                    '[蓋]' if row[kwdict_col.override] else u'',
-                    '[頂]' if row[kwdict_col.admin] else u'',
-                    '[刪]' if row[kwdict_col.deleted] else u'')
+                text = u'ID: {} - {} {}{}{}\n'.format(
+                    row[int(kwdict_col.id)],
+                    u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'),
+                    u'[蓋]' if row[int(kwdict_col.override)] else u'',
+                    u'[頂]' if row[int(kwdict_col.admin)] else u'',
+                    u'[刪]' if row[int(kwdict_col.deleted)] else u'')
 
                 ret['full'] += text
 
                 if not limited:
                     ret['limited'] += text
 
-                    if index > limit:
-                        ret['limited'] += '...(還有{}筆)'.format(count-limit)
+                    if index >= limit:
+                        ret['limited'] += u'...(還有{}筆)'.format(count - limit)
                         limited = True
 
         return ret
 
     @staticmethod
-    def list_keyword_info(kwd_mgr, line_api, data, limit=2):
+    def list_keyword_recently_called(data):
+        ret = u'\n'.join([u'ID: {} - {} @{}'.format(row[int(kwdict_col.id)], 
+                                                    u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
+                                                    row[int(kwdict_col.last_call)]) for row in data])
+
+        return ret
+
+    @staticmethod
+    def entry_basic_info(entry_row):
+        text = u'ID: {}\n'.format(entry_row[int(kwdict_col.id)])
+        kw = entry_row[int(kwdict_col.keyword)].decode('utf8')
+        if not entry_row[int(kwdict_col.is_sticker_kw)]:
+            text += u'關鍵字: {}\n'.format(kw)
+        else:
+            text += u'關鍵字: (貼圖ID: {})\n'.format(kw)
+        text += u'回覆{}: {}'.format(u'圖片URL' if entry_row[int(kwdict_col.is_pic_reply)] else u'文字',
+                                     entry_row[int(kwdict_col.reply)].decode('utf-8'))
+        return text
+
+    @staticmethod
+    def entry_detailed_info(kwd_mgr, line_api_proc, entry_row):
+        detailed = kw_dict_mgr.entry_basic_info(entry_row) + u'\n\n'
+        detailed += u'屬性:\n'
+        detailed += u'{} {} {}\n\n'.format(u'[ 置頂 ]' if entry_row[int(kwdict_col.admin)] else u'[ - ]',
+                                        u'[ 覆蓋 ]' if entry_row[int(kwdict_col.override)] else u'[ - ]',
+                                        u'[ 刪除 ]' if entry_row[int(kwdict_col.deleted)] else u'[ - ]')
+        detailed += u'呼叫次數: {} (第{}名)\n'.format(entry_row[int(kwdict_col.used_count)], 
+                                                       kwd_mgr.used_count_rank(entry_row[int(kwdict_col.id)]))
+            
+        if entry_row[int(kwdict_col.last_call)] is not None:
+            detailed += u'最後呼叫時間:\n{}\n'.format(entry_row[int(kwdict_col.last_call)])
+
+        creator_profile = line_api_proc.profile(entry_row[int(kwdict_col.creator)])
+        detailed += u'\n製作者LINE使用者名稱:\n{}\n'.format(error.main.line_account_data_not_found() if creator_profile is None else creator_profile.display_name)
+        detailed += u'製作者LINE UUID:\n{}\n'.format(entry_row[int(kwdict_col.creator)])
+        detailed += u'製作時間:\n{}'.format(entry_row[int(kwdict_col.created_time)])
+
+        if entry_row[int(kwdict_col.deletor)] is not None:
+            deletor_profile = line_api_proc.profile(entry_row[int(kwdict_col.deletor)]) 
+            detailed += u'\n刪除者LINE使用者名稱:\n{}\n'.format(error.main.line_account_data_not_found() if deletor_profile is None else deletor_profile.display_name)
+            detailed += u'刪除者LINE UUID:\n{}\n'.format(entry_row[int(kwdict_col.deletor)])
+            detailed += u'刪除時間:\n{}'.format(entry_row[int(kwdict_col.disabled_time)])
+
+        return detailed
+
+    @staticmethod
+    def list_keyword_info(kwd_mgr, line_api_proc, data, limit=3):
         """return two object to access by [\'limited\'] and [\'full\']."""
-        ret = {'limited': '', 'full': ''}
+        ret = {'limited': u'', 'full': u''}
         limited = False
         count = len(data)
         separator = u'====================\n'
@@ -292,14 +310,14 @@ class kw_dict_mgr(object):
         else:
             for index, row in enumerate(data, start=1):
                 text = separator
-                text += kw_dict_mgr.entry_detailed_info(kwd_mgr, line_api, row)
+                text += kw_dict_mgr.entry_detailed_info(kwd_mgr, line_api_proc, row)
                 text += u'\n'
                 ret['full'] += text
 
                 if not limited:
                     ret['limited'] += text
 
-                    if index > limit:
+                    if index >= limit:
                         ret['limited'] += separator
                         ret['limited'] += u'還有{}筆資料沒有顯示。'.format(count - limit)
                         limited = True
@@ -312,11 +330,11 @@ class kw_dict_mgr(object):
 
         for row in data:
             text += u'\n第{}名 - ID: {} - {} ({}次{})'.format(
-                row[kwdict_col.used_rank],
-                row[kwdict_col.id],
-                u'(貼圖ID {id})'.format(id=row[kwdict_col.keyword]) if row[kwdict_col.is_sticker_kw] else row[kwdict_col.keyword].decode('utf-8'), 
-                row[kwdict_col.used_count],
-                u' - 已固定' if row[kwdict_col.deleted] or row[kwdict_col.override] else '')
+                row[int(kwdict_col.used_rank)],
+                row[int(kwdict_col.id)],
+                u'(貼圖ID {id})'.format(id=row[int(kwdict_col.keyword)]) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
+                row[int(kwdict_col.used_count)],
+                u' - 已固定' if row[int(kwdict_col.deleted)] or row[int(kwdict_col.override)] else '')
 
         return text
 
@@ -325,12 +343,12 @@ class kw_dict_mgr(object):
         text = u'回覆組製作排行 (前{}名):'.format(len(data))
 
         for row in data:
-            text += u'\n\n第{}名 - {}\n製作{}組 | 共使用{}次 | 平均每組被使用{}次'.format(
-                row[0],
-                line_api.get_profile(row[1]).display_name,
-                row[2],
-                row[3],
-                row[4])
+            profile = line_api.profile(row[1])
+            if profile is None:
+                uname = error.main.line_account_data_not_found()
+            else:
+                uname = profile.display_name
+            text += u'\n\n第{}名 - {}\n製作{}組 | 共使用{}次 | 平均每組被使用{}次'.format(row[0], uname, row[2], row[3], row[4])
 
         return text
 
@@ -361,10 +379,23 @@ class kw_dict_mgr(object):
         )
         self.cur = self.conn.cursor()
 
+class kwdict_col(Enum):
+    id = 0
+    keyword = 1
+    reply = 2
+    deleted = 3
+    override = 4
+    admin = 5
+    used_count = 6
+    creator = 7
+    is_pic_reply = 8
+    is_sticker_kw = 9
+    deletor = 10
+    created_time = 11
+    disabled_time = 12
+    last_call = 13
 
-_col_list = ['id', 'keyword', 'reply', 'deleted', 'override', 'admin', 
-             'used_count', 'creator', 'is_pic_reply', 'is_sticker_kw', 'deletor', 
-             'created_time', 'disabled_time', 
-             'used_rank']
-_col_tuple = collections.namedtuple('kwdict_col', _col_list)
-kwdict_col = _col_tuple(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    used_rank = 14
+
+    def __int__(self):
+        return self.value
