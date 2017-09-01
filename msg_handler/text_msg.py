@@ -445,7 +445,7 @@ class text_msg(object):
                     settarget = action_dict[action]
                     result = self.gb.set_silence(gid, str(settarget), pw)
 
-                    if isinstance(result, (str, unicode)) and result:
+                    if not isinstance(result, (str, unicode)) and result:
                         text = u'群組自動回覆功能已{}。\n\n群組/房間ID: {}'.format(status_silence[settarget], gid)
                     else:
                         text = u'群組靜音設定變更失敗。\n錯誤: {}\n\n群組/房間ID: {}\n'.format(gid, result)
