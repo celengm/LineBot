@@ -445,7 +445,7 @@ class text_msg(object):
                     settarget = action_dict[action]
                     result = self.gb.set_silence(gid, str(settarget), pw)
 
-                    if result:
+                    if isinstance(result, (str, unicode)) and result:
                         text = u'群組自動回覆功能已{}。\n\n群組/房間ID: {}'.format(status_silence[settarget], gid)
                     else:
                         text = u'群組靜音設定變更失敗。\n錯誤: {}\n\n群組/房間ID: {}\n'.format(gid, result)
@@ -455,38 +455,50 @@ class text_msg(object):
             elif perm >= 2 and param_count == 5:
                 action = params[1]
                 gid = params[2]
-                new_uid = params[3]
+                new_uid = None if params[3] == 'DELETE' else params[3]
                 pw = params[4]
-                new_pw = params[5]
+                new_pw = None if params[5] == 'DELETE' else params[5]
 
-                action_dict = {'SA': self.gb.change_admin, 
-                               'SM1': self.gb.set_mod1,
-                               'SM2': self.gb.set_mod2,
-                               'SM3': self.gb.set_mod3}
-                pos_name = {'SA': u'群組管理員',
-                            'SM1': u'群組副管 1',
-                            'SM2': u'群組副管 2',
-                            'SM3': u'群組副管 3'}
+                legal_action = ['SA', 'SM1', 'SM2', 'SM3', 'DM1', 'DM2', 'DM3']
 
-                line_profile = self.api_proc.profile(new_uid)
+                if action.startswith('S'):
+                    action_dict = {legal_action[0]: (self.gb.change_admin, u'群組管理員'), 
+                                   legal_action[1]: (self.gb.set_mod1, u'群組副管 1'), 
+                                   legal_action[2]: (self.gb.set_mod2, u'群組副管 2'), 
+                                   legal_action[3]: (self.gb.set_mod3, u'群組副管 3')}
 
-                if line_profile is not None:
-                    try:
-                        if action_dict[action](gid, new_uid, pw, new_pw):
-                            position = pos_name[action]
+                    line_profile = self.api_proc.profile(new_uid)
 
-                            text = u'群組管理員已變更。\n'
+                    if line_profile is not None:
+                        result = action_dict[action][0](gid, new_uid, pw, new_pw)
+                        if isinstance(result, (str, unicode)) and result:
+                            position = action_dict[action][1]
+
+                            text = u'{}已變更。\n'.format(position)
                             text += u'群組/房間ID: {}\n\n'.format(gid)
                             text += u'新{}使用者ID: {}\n'.format(position, new_uid)
                             text += u'新{}使用者名稱: {}\n\n'.format(position, line_profile.display_name)
                             text += u'新{}密碼: {}\n'.format(position, new_pw)
                             text += u'請記好密碼，嚴禁洩漏，或在群頻中直接開關群組自動回覆功能！'
                         else:
-                            text = u'{}變更作業失敗。'.format(pos_name[action])
-                    except KeyError as Ex:
-                        text = error.main.invalid_thing(u'參數1(動作)', action)
+                            text = u'{}變更失敗。\n錯誤: {}'.format(pos_name[action], result)
+                    else:
+                        text = error.main.line_account_data_not_found()
+                elif action.startswith('D'):
+                    action_dict = {legal_action[4]: (self.gb.set_mod1, u'群組副管 1'),
+                                   legal_action[5]: (self.gb.set_mod2, u'群組副管 2'),
+                                   legal_action[6]: (self.gb.set_mod3, u'群組副管 3')}
+
+                    result = action_dict[action][0](gid, new_uid, pw, new_pw)
+                    if isinstance(result, (str, unicode)) and result:
+                        position = action_dict[action][1]
+
+                        text = u'{}已刪除。\n'.format(position)
+                        text += u'群組/房間ID: {}\n\n'.format(gid)
+                    else:
+                        text = u'{}刪除失敗。\n錯誤: {}'.format(pos_name[action], result)
                 else:
-                    text = error.main.line_account_data_not_found()
+                    text = error.main.invalid_thing(u'指令', action)
         else:
             text = error.main.incorrect_channel()
 
