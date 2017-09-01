@@ -123,11 +123,11 @@ def callback():
     # handle webhook body
     try:
         # Single Thread
-        # handler.handle(body, signature)
+        handler.handle(body, signature)
 
         # Multi Thread
-        HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
-        HandleThread.start()
+        # HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        # HandleThread.start()
     except exceptions.InvalidSignatureError:
         abort(400)
 
