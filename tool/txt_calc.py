@@ -5,7 +5,7 @@ class text_calculator(object):
     @staticmethod
     def calc(text, debug=False):
         result = ''
-        if text.startswith('0') or text.startswith('+'):
+        if (text.startswith('0') and '.' not in text) or text.startswith('+'):
             return
         try:
             if 'result=' not in text:
