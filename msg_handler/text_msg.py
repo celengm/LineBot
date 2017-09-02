@@ -238,7 +238,7 @@ class text_msg(object):
         return text
 
     def I(self, src, params):
-        error = False
+        error_occurred = False
         if params[2] is not None:
             action = params[1]
             pair_id = params[2]
@@ -246,14 +246,14 @@ class text_msg(object):
 
             if action != 'ID':
                 results = None
-                error = True
-                text += error.main.invalid_thing_with_correct_format(u'參數1', u'ID', action)
+                error_occurred = True
+                text += error_occurred.main.invalid_thing_with_correct_format(u'參數1', u'ID', action)
             else:
                 if system.string_can_be_int(pair_id):
                     results = self.kwd.get_info_id(pair_id)   
                 else:
                     results = None
-                    error = True
+                    error_occurred = True
                     text += error.main.invalid_thing_with_correct_format(u'參數2', u'正整數', pair_id)
         else:
             kw = params[1]
@@ -265,7 +265,7 @@ class text_msg(object):
             i_object = kw_dict_mgr.list_keyword_info(self.kwd, self.api_proc, results)
             text += i_object['limited']
             text += u'\n完整資訊URL: {}'.format(self.webpage_generator.rec_info(i_object['full']))
-        elif not error:
+        elif not error_occurred:
             text = error.main.miscellaneous(u'查無相符資料。')
 
         return text
