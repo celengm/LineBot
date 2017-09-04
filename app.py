@@ -649,7 +649,7 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
             return True
         else:
             api_reply(token, 
-                      TextSendMessage(text=reply),
+                      TextSendMessage(text=reply_obj['main']),
                       src)
             return True
 
