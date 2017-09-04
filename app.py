@@ -516,12 +516,12 @@ def handle_content_message(event):
             with open(dest_path, 'rb') as f:
                 hexdata = binascii.hexlify(f.read())
             
-            hexlist = map(' '.join, zip(*[iter(hexdata)]*2))
+            hexlist = map(''.join, zip(*[iter(hexdata)]*2))
 
         os.remove(dest_path)
 
         # api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
-        api_reply(token, TextSendMessage(text=hexlist), src)
+        api_reply(token, TextSendMessage(text=' '.join(hexlist)), src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
