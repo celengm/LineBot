@@ -491,6 +491,9 @@ def handle_sticker_message(event):
 def handle_content_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_pic)
     
+    if not isinstance(src, SourceUser):
+        return
+
     token = event.reply_token
     msg = event.message
     src = event.source
@@ -508,6 +511,7 @@ def handle_content_message(event):
             os.rename(tempfile_path, dist_path)
 
             imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_name))
+            tf.close()
 
         api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
     except ImgurClientError as e:
