@@ -508,7 +508,7 @@ def handle_content_message(event):
             tempfile_path = tf.name
             print tempfile_path
 
-            print os.listdir('/app/static/tmp')
+            print os.listdir('/app/static/tmp/')
 
             print os.path.join('static', 'tmp', tempfile_path)
             imgur_url = imgur_api.upload(os.path.join('static', 'tmp', tempfile_path))
