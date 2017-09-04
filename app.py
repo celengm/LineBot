@@ -517,7 +517,7 @@ def handle_content_message(event):
         api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
-        text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message.decode("utf-8"))
+        text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
 
         error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)
