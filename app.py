@@ -632,9 +632,9 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
         result = res[0]
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'))
         
-        if result[int(kwdict_col.is_pic_reply)]:
-            line_profile = line_api.profile(result[int(kwdict_col.creator)])
-                                                                                                                                               
+        print result
+
+        if result[int(kwdict_col.is_pic_reply)]:                                                                         
             api_reply(token, TemplateSendMessage(
                 alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n\n{}關鍵字ID: {}'.format(
                     u'' if reply_obj['attachment'] is None else u'{}\n'.format(reply_obj['attachment']),
