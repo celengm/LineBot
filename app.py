@@ -506,11 +506,19 @@ def handle_content_message(event):
             for chunk in message_content.iter_content():
                 tf.write(chunk)
             tempfile_path = tf.name
+            print tempfile_path
 
             dist_path = tempfile_path + '.jpg'
+            print dist_path
             dist_name = os.path.basename(dist_path)
+            print dist_name
             os.rename(tempfile_path, dist_path)
+            print tempfile_path
+            print dist_path
 
+            print os.path.join('static', 'tmp', dist_name)
+
+            print os.listdir()
             imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_name))
             tf.close()
 
