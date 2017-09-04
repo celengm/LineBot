@@ -507,7 +507,7 @@ def handle_content_message(event):
                 tf.write(chunk)
             tempfile_path = tf.name
             
-            dist_path = tempfile_path + '.' + ext
+            dist_path = tempfile_path + '.jpg'
             os.rename(tempfile_path, dist_path)
 
             imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_path))
