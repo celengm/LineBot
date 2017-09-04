@@ -68,7 +68,7 @@ class kw_dict_mgr(object):
             return error.main.invalid_thing_with_correct_format(u'關鍵字', u'字數大於0，但小於500字(中文250字)的字串', keyword)
         elif reply.replace(' ', '') == '':
             return error.main.invalid_thing_with_correct_format(u'回覆', u'字數大於0，但小於500字(中文250字)的字串', reply)
-        elif not illegal_reply_object_test['is_legal']:
+        elif is_pic_reply and not illegal_reply_object_test['is_legal']:
             return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', 
                                                                 illegal_reply_object_test['test_reply_object'])
         else:
