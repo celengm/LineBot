@@ -138,8 +138,7 @@ class text_msg(object):
                 text = error.main.lack_of_thing(u'參數')
 
             if results is not None:
-                print results.encode('utf-8')
-                if isinstance(results, str):
+                if isinstance(results, (str, unicode)):
                     text = results
                 else:
                     text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
