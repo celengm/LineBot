@@ -502,7 +502,7 @@ def handle_content_message(event):
     try:
         message_content = line_api.get_content(msg.id)
 
-        with tempfile.NamedTemporaryFile(dir=static_tmp_path) as tf:
+        with tempfile.NamedTemporaryFile(dir=static_tmp_path, delete=False) as tf:
             for chunk in message_content.iter_content():
                 tf.write(chunk)
             tempfile_path = tf.name
@@ -511,7 +511,8 @@ def handle_content_message(event):
             os.rename(tempfile_path, dist_path)
 
             imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_path))
-            tf.close()
+
+        os.remove(dist_path)
 
         api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
     except ImgurClientError as e:
