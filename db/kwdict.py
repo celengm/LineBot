@@ -389,7 +389,7 @@ class kw_dict_mgr(object):
         from msg_handler.text_msg import split
 
         reply_splitter = ' '
-        split_iter = split(reply_text_in_db.decode('utf-8'), reply_splitter, 2)
+        split_iter = split(reply_text_in_db, reply_splitter, 2)
 
         return {'main': split_iter[0], 'attached': split_iter[1]}
 
