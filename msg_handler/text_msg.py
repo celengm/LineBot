@@ -398,6 +398,9 @@ class text_msg(object):
                 client_limit = self.imgur_api_proc.client_limit
                 client_remaining = self.imgur_api_proc.client_remaining
 
+                print user_limit
+                print client_limit
+
                 text = u'【IMGUR API相關資料】\n'
                 text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
 
