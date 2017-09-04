@@ -510,11 +510,17 @@ def handle_content_message(event):
             dist_path = tempfile_path + '.jpg'
             os.rename(tempfile_path, dist_path)
 
-            imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_path))
+            import binascii
+
+            with open(dist_path, 'rb') as f:
+                hexdata = binascii.hexlify(f.read())
+                hexlist = map(''.join, zip(*[iter(hexdata)]*2))
 
         os.remove(dist_path)
 
-        api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
+        # api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
+        api_reply(token, [TextSendMessage(text=hexdata), 
+                          TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_path))], src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
