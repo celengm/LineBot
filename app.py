@@ -495,25 +495,20 @@ def handle_content_message(event):
     msg = event.message
     src = event.source
 
-    if isinstance(msg, ImageMessage):
-        ext = 'jpg'
-    else:
-        return
-
     try:
         message_content = line_api.get_content(msg.id)
 
-        with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
+        with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix='jpg-', delete=False) as tf:
             for chunk in message_content.iter_content():
                 tf.write(chunk)
             tempfile_path = tf.name
 
-        dist_path = tempfile_path + '.' + ext
+        dist_path = tempfile_path + '.jpg'
         dist_name = os.path.basename(dist_path)
         os.rename(tempfile_path, dist_path)
 
-        api_reply(token, [TextSendMessage(text='Save content.'),
-                TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))], src)
+        api_reply(token, [TextSendMessage(text='Save content.'), 
+                          TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))], src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message.decode("utf-8"))
@@ -551,7 +546,7 @@ def handle_location_message(event):
 
 
 # Incomplete
-@handler.add(MessageEvent, message=(ImageMessage, VideoMessage, AudioMessage))
+@handler.add(MessageEvent, message=(VideoMessage, AudioMessage))
 def handle_content_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_txt)
     return
