@@ -6,6 +6,7 @@ import urlparse
 import psycopg2
 
 from error import error
+from msg_handler import text_msg
 
 import collections
 
@@ -60,8 +61,14 @@ class kw_dict_mgr(object):
     def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
-        if keyword.replace(' ', '') == '' or reply.replace(' ', '') == '':
-            return None
+        is_illegal_reply_attachment = lambda reply_obj: reply_obj['attachment'] is not None and reply_obj['attachment'] > 25
+
+        if keyword.replace(' ', '') == '':
+            return error.main.invalid_thing_with_correct_format(u'關鍵字', u'字數大於0，但小於500字的字串', keyword)
+        elif reply.replace(' ', '') == '':
+            return error.main.invalid_thing_with_correct_format(u'回覆', u'字數大於0，但小於500字的字串', keyword)
+        elif is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply)):
+            return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於25字的字串', keyword)
         else:
             cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply) \
                     VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s) \
@@ -260,14 +267,25 @@ class kw_dict_mgr(object):
 
     @staticmethod
     def entry_basic_info(entry_row):
+        reply_splitter = ' '
         text = u'ID: {}\n'.format(entry_row[int(kwdict_col.id)])
-        kw = entry_row[int(kwdict_col.keyword)].decode('utf8')
+
+        kw = entry_row[int(kwdict_col.keyword)].decode('utf-8')
+        reply_iter = kwdict_col.split_reply(entry_row[int(kwdict_col.reply)])
+        reply_iter_attachment = reply_iter['attached']
+        is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
+
         if not entry_row[int(kwdict_col.is_sticker_kw)]:
             text += u'關鍵字: {}\n'.format(kw)
         else:
             text += u'關鍵字: (貼圖ID: {})\n'.format(kw)
-        text += u'回覆{}: {}'.format(u'圖片URL' if entry_row[int(kwdict_col.is_pic_reply)] else u'文字',
-                                     entry_row[int(kwdict_col.reply)].decode('utf-8'))
+
+        text += u'回覆{}: {}'.format(u'圖片URL' if is_pic_reply else u'文字',
+                                     reply_iter['main'])
+
+        if reply_iter_attachment is not None and is_pic_reply:
+            text += u'回覆文字: {}'.format(reply_iter_attachment)
+
         return text
 
     @staticmethod
@@ -361,6 +379,18 @@ class kw_dict_mgr(object):
     @staticmethod
     def sticker_id(sticker_url):
         return sticker_url.replace('https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/', '').replace('/android/sticker.png', '')
+
+    @staticmethod
+    def split_reply(reply_text_in_db):
+        """
+        return:
+            ['main'] = main part of reply
+            ['attached'] = attached text
+        """
+        reply_splitter = ' '
+        split_iter = text_msg.split(reply_text_in_db.decode('utf-8'), reply_splitter, 2)
+
+        return {'main': split_iter[0], 'attached': split_iter[1]}
 
 
 

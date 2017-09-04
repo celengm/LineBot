@@ -71,7 +71,7 @@ class error(object):
 
         @staticmethod
         def line_account_data_not_found():
-            return u'找不到LINE帳號資料。'
+            return u'無對應LINE帳號資料。'
 
         @staticmethod
         def text_length_too_long(url):

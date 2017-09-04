@@ -563,7 +563,7 @@ def handle_join(event):
             api_reply(reply_token, 
                       [TextMessage(text=u'群組資料註冊{}。'.format(u'成功' if added else u'失敗')),
                        introduction_template()], 
-                       cid)
+                       src)
         else:
             api_reply(reply_token, 
                       [TextMessage(text=u'群組資料已存在。'),
@@ -630,20 +630,22 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
     if res is not None:
         msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_stk_repl if is_sticker_kw else msg_event_type.recv_txt_repl)
         result = res[0]
-        reply = result[int(kwdict_col.reply)].decode('utf-8')
-
+        reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'))
+        
         if result[int(kwdict_col.is_pic_reply)]:
             line_profile = line_api.profile(result[int(kwdict_col.creator)])
                                                                                                                                                
             api_reply(token, TemplateSendMessage(
-                alt_text=u'圖片/貼圖回覆.\n關鍵字ID: {}'.format(result[int(kwdict_col.id)]),
-                template=ButtonsTemplate(text=u'由{}製作。\n回覆組ID: {}'.format(
-                    error.main.line_account_data_not_found() if line_profile is None else line_profile.display_name,
+                alt_text=u'(圖片/貼圖回覆)\n{}關鍵字ID: {}\n回覆圖片URL: {}'.format(
+                    '' if reply_obj['attached'] is None else '{}\n'.format(reply_obj['attached']), 
+                    result[int(kwdict_col.id)],
+                    reply_obj['main']),
+                template=ButtonsTemplate(text=u'{}{}\nID: {}'.format(
+                    '' if reply_obj['attached'] is None else '{}\n\n'.format(reply_obj['attached']), 
+                    error.main.line_account_data_not_found() if line_profile is None else u'由{}製作。'.format(line_profile.display_name),
                     result[int(kwdict_col.id)]), 
-                                         thumbnail_image_url=reply,
-                                         actions=[
-                                             URITemplateAction(label=u'原始圖片', uri=reply)
-                                         ])), src)
+                    thumbnail_image_url=reply_obj['main'],
+                    actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
             return True
         else:
             api_reply(token, 

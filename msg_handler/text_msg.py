@@ -136,6 +136,8 @@ class text_msg(object):
                 text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
                 for result in results:
                     text += kw_dict_mgr.entry_basic_info(result)
+            elif isinstance(results, str):
+                text = results
 
         return text
 
