@@ -60,14 +60,17 @@ class kw_dict_mgr(object):
     def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
-        is_illegal_reply_attachment = lambda reply_obj: reply_obj['attachment'] is not None and reply_obj['attachment'] > 50
+        is_illegal_reply_attachment = lambda reply_obj: {'is_legal': reply_obj['attachment'] is not None and len(reply_obj['attachment'] <= 50), 
+                                                         'test_reply_object': reply_obj}
+        illegal_reply_object_test = is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply))
 
         if keyword.replace(' ', '') == '':
             return error.main.invalid_thing_with_correct_format(u'關鍵字', u'字數大於0，但小於500字(中文250字)的字串', keyword)
         elif reply.replace(' ', '') == '':
             return error.main.invalid_thing_with_correct_format(u'回覆', u'字數大於0，但小於500字(中文250字)的字串', reply)
-        elif is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply)):
-            return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', kw_dict_mgr.split_reply(reply)['attachment'])
+        elif not illegal_reply_object_test['is_legal']:
+            return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', 
+                                                                illegal_reply_object_test['test_reply_object'])
         else:
             cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply) \
                     VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s) \
