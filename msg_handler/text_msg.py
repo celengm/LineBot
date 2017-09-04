@@ -88,7 +88,7 @@ class text_msg(object):
                     rep_pic_url = rep_obj['main']
 
                     if system.string_can_be_int(rep_pic_url):
-                        rep = kw_dict_mgr.sticker_png_url(rep_pic_url)
+                        rep = rep.replace(rep_pic_url, kw_dict_mgr.sticker_png_url(rep_pic_url))
                         url_val_result = True
                     else:
                         url_val_result = url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
