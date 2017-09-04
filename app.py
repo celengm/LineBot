@@ -111,7 +111,7 @@ imgur_api = imgur_proc(imgur)
 oxford_dict_obj = msg_handler.oxford_dict('en')
 
 # File path
-image_temp_path = os.path.join(os.path.dirname(__file__), 'images')
+static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
 webpage_generator = webpage_auto_gen.webpage()
@@ -123,11 +123,11 @@ command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track,
 game_executor = msg_handler.game_msg(game_data, line_api)
 
 # function for create tmp dir for download content
-def make_image_dir():
+def make_tmp_dir():
     try:
-        os.makedirs(image_temp_path)
+        os.makedirs(static_tmp_path)
     except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(image_temp_path):
+        if exc.errno == errno.EEXIST and os.path.isdir(static_tmp_path):
             pass
         else:
             raise
@@ -500,28 +500,20 @@ def handle_content_message(event):
     try:
         message_content = line_api.get_content(msg.id)
 
-        with open(image_temp_path + 'image.jpg', 'w+') as f:
+        with tempfile.NamedTemporaryFile(dir=static_tmp_path, delete=False) as tf:
             for chunk in message_content.iter_content():
-                f.write(chunk)
+                tf.write(chunk)
+            tempfile_path = tf.name
 
-            tempfile_path = image_temp_path + 'image.jpg'
-            
-            dest_path = tempfile_path + '.jpg'
+            dest_path = tempfile_path + '.' + ext
+            dest_name = os.path.basename(dest_path)
             os.rename(tempfile_path, dest_path)
-
-            import binascii
-
-            with open(dest_path, 'rb') as f:
-                hexdata = binascii.hexlify(f.read())
-                hexlist = map(''.join, zip(*[iter(hexdata)]*2))
 
             imgur_url = imgur_api.upload(dest_path)
 
         os.remove(dest_path)
 
-        # api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
-        api_reply(token, [TextSendMessage(text=hexdata), 
-                          TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dest_path))], src)
+        api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
@@ -717,6 +709,6 @@ def minigame_rps_capturing(rps_obj, is_sticker, content, uid):
 
 if __name__ == "__main__":
     # create tmp dir for download content
-    make_image_dir()
+    make_tmp_dir()
 
     app.run(port=os.environ['PORT'], host='0.0.0.0')
