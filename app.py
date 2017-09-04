@@ -637,11 +637,11 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
                                                                                                                                                
             api_reply(token, TemplateSendMessage(
                 alt_text=u'(圖片/貼圖回覆)\n{}關鍵字ID: {}\n回覆圖片URL: {}'.format(
-                    '' if reply_obj['attached'] is None else '{}\n'.format(reply_obj['attached']), 
+                    '' if reply_obj['attachment'] is None else '{}\n'.format(reply_obj['attachment']), 
                     result[int(kwdict_col.id)],
                     reply_obj['main']),
                 template=ButtonsTemplate(text=u'{}{}\nID: {}'.format(
-                    '' if reply_obj['attached'] is None else '{}\n\n'.format(reply_obj['attached']), 
+                    '' if reply_obj['attachment'] is None else '{}\n\n'.format(reply_obj['attachment']), 
                     error.main.line_account_data_not_found() if line_profile is None else u'由{}製作。'.format(line_profile.display_name),
                     result[int(kwdict_col.id)]), 
                     thumbnail_image_url=reply_obj['main'],

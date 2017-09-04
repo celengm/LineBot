@@ -271,7 +271,7 @@ class kw_dict_mgr(object):
 
         kw = entry_row[int(kwdict_col.keyword)].decode('utf-8')
         reply_iter = kwdict_col.split_reply(entry_row[int(kwdict_col.reply)])
-        reply_iter_attachment = reply_iter['attached']
+        reply_iter_attachment = reply_iter['attachment']
         is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
 
         if not entry_row[int(kwdict_col.is_sticker_kw)]:
@@ -384,14 +384,14 @@ class kw_dict_mgr(object):
         """
         return:
             ['main'] = main part of reply
-            ['attached'] = attached text
+            ['attachment'] = attachment text
         """
         from msg_handler.text_msg import split
 
         reply_splitter = '  '
         split_iter = split(reply_text_in_db, reply_splitter, 2)
 
-        return {'main': split_iter[0], 'attached': split_iter[1]}
+        return {'main': split_iter[0], 'attachment': split_iter[1]}
 
 
 
