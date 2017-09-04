@@ -4,7 +4,7 @@ import validators
 import urllib
 from urlparse import urlparse
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Flask, request, abort, url_for
 import hashlib 
@@ -398,16 +398,13 @@ class text_msg(object):
                 client_limit = self.imgur_api_proc.client_limit
                 client_remaining = self.imgur_api_proc.client_remaining
 
-                print user_limit
-                print client_limit
-
                 text = u'【IMGUR API相關資料】\n'
                 text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
 
                 text += u'連結IP: {}\n'.format(ip_address)
                 text += u'IP可用積分: {} ({:.2%})\n'.format(user_remaining, user_remaining / float(user_limit))
                 text += u'IP上限積分: {}\n'.format(user_limit)
-                text += u'IP積分重設時間: {}\n\n'.format(datetime.fromtimestamp(float(user_reset)).strftime('%Y-%m-%d %H:%M:%S'))
+                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format(datetime.fromtimestamp(float(user_reset)).strftime('%Y-%m-%d %H:%M:%S') + timedelta(hours=9))
                 text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, client_remaining / float(client_limit))
                 text += u'今日API上限積分: {}'.format(client_limit)
             else:

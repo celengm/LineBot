@@ -16,7 +16,7 @@ import time
 from collections import defaultdict
 from urlparse import urlparse
 from cgi import escape
-from datetime import datetime, timedelta
+from datetime import datetime
 from error import error
 from flask import Flask, request, url_for
 from math import *
