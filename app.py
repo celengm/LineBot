@@ -218,7 +218,7 @@ def handle_text_message(event):
         if text == 'ERRORERRORERRORERROR':
             raise Exception('THIS ERROR IS CREATED FOR TESTING PURPOSE.')
         elif splitter in text:
-            head, cmd, oth = msg_handler.text_msg.split(text, splitter, 3)
+            head, cmd, oth = msg_handler.split(text, splitter, 3)
 
             if head == 'JC':
                 params = command_executor.split_verify(cmd, splitter, oth)
@@ -311,7 +311,7 @@ def handle_text_message(event):
                 else:
                     sys_data.sys_cmd_dict[cmd].count -= 1
             elif head == 'HELP':
-                data = msg_handler.text_msg.split(text, splitter, 2)
+                data = msg_handler.split(text, splitter, 2)
                 sys_data.helper_cmd_dict['MFF'].count += 1
 
                 # TODO: restruct helper
@@ -349,7 +349,7 @@ def handle_text_message(event):
                 
                 max_prm = sys_data.game_cmd_dict[cmd].split_max
                 min_prm = sys_data.game_cmd_dict[cmd].split_min
-                params = msg_handler.text_msg.split(oth, splitter, max_prm)
+                params = msg_handler.split(oth, splitter, max_prm)
 
                 if min_prm > len(params) - params.count(None):
                     text = error.main.lack_of_thing(u'參數')

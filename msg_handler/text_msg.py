@@ -678,22 +678,6 @@ class text_msg(object):
         
         return urllib.quote(text)
 
-    @staticmethod
-    def split(text, splitter, size):
-        list = []
-  
-        if text is not None:
-            for i in range(size):
-                if splitter not in text or i == size - 1:
-                    list.append(text)
-                    break
-                list.append(text[0:text.index(splitter)])
-                text = text[text.index(splitter)+len(splitter):]
-  
-        while len(list) < size:
-            list.append(None)
-        
-        return list
 
     def split_verify(self, cmd, splitter, param_text):
         if cmd not in self.system_data.sys_cmd_dict:
@@ -701,7 +685,7 @@ class text_msg(object):
 
         max_prm = self.system_data.sys_cmd_dict[cmd].split_max
         min_prm = self.system_data.sys_cmd_dict[cmd].split_min
-        params = text_msg.split(param_text, splitter, max_prm)
+        params = split(param_text, splitter, max_prm)
 
         if min_prm > len(params) - params.count(None):
             return error.main.lack_of_thing(u'參數')
@@ -739,4 +723,22 @@ class oxford_dict(object):
     @enabled.setter
     def enabled(self, value):
         self._enabled = value
+
+
+ 
+def split(text, splitter, size):
+    list = []
+
+    if text is not None:
+        for i in range(size):
+            if splitter not in text or i == size - 1:
+                list.append(text)
+                break
+            list.append(text[0:text.index(splitter)])
+            text = text[text.index(splitter)+len(splitter):]
+
+    while len(list) < size:
+        list.append(None)
+    
+    return list
 

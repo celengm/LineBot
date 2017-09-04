@@ -6,7 +6,7 @@ import urlparse
 import psycopg2
 
 from error import error
-from msg_handler.text_msg import text_msg
+from msg_handler.text_msg import split
 
 import collections
 
@@ -388,7 +388,7 @@ class kw_dict_mgr(object):
             ['attached'] = attached text
         """
         reply_splitter = ' '
-        split_iter = text_msg.split(reply_text_in_db.decode('utf-8'), reply_splitter, 2)
+        split_iter = split(reply_text_in_db.decode('utf-8'), reply_splitter, 2)
 
         return {'main': split_iter[0], 'attached': split_iter[1]}
 
