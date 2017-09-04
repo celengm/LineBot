@@ -6,7 +6,6 @@ import urlparse
 import psycopg2
 
 from error import error
-from msg_handler import text_msg
 
 import collections
 
