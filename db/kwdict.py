@@ -286,7 +286,7 @@ class kw_dict_mgr(object):
                                      reply_iter['main'])
 
         if reply_iter_attachment is not None and is_pic_reply:
-            text += u'回覆文字: {}'.format(reply_iter_attachment)
+            text += u'\n回覆文字: {}'.format(reply_iter_attachment)
 
         return text
 
