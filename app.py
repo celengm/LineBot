@@ -490,13 +490,14 @@ def handle_sticker_message(event):
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_content_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_pic)
+
+    src = event.source
     
     if not isinstance(src, SourceUser):
         return
 
     token = event.reply_token
     msg = event.message
-    src = event.source
 
     try:
         message_content = line_api.get_content(msg.id)
