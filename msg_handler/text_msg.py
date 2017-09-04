@@ -73,6 +73,7 @@ class text_msg(object):
                 kw = params[2]
                 action_rep = params[3]
                 rep = params[4]
+                rep_obj = kw_dict_mgr.split_reply(rep)
                  
                 if action_kw != 'STK':
                     results = None
@@ -84,11 +85,13 @@ class text_msg(object):
                     results = None
                     text =  error.main.incorrect_param(u'參數3', u'PIC')
                 else:
-                    if system.string_can_be_int(rep):
-                        rep = kw_dict_mgr.sticker_png_url(rep)
+                    rep_pic_url = rep_obj['main']
+
+                    if system.string_can_be_int(rep_pic_url):
+                        rep = kw_dict_mgr.sticker_png_url(rep_pic_url)
                         url_val_result = True
                     else:
-                        url_val_result = url_val_result = True if validators.url(rep) and urlparse(rep).scheme == 'https' else False
+                        url_val_result = url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
 
                     if type(url_val_result) is bool and url_val_result:
                         results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, True, True)
@@ -97,15 +100,17 @@ class text_msg(object):
                         text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址。')
             elif params[3] is not None:
                 rep = params[3]
+                rep_obj = kw_dict_mgr.split_reply(rep)
 
                 if params[2] == 'PIC':
                     kw = params[1]
+                    rep_pic_url = rep_obj['main']
 
-                    if system.string_can_be_int(rep):
-                        rep = kw_dict_mgr.sticker_png_url(rep)
+                    if system.string_can_be_int(rep_pic_url):
+                        rep = kw_dict_mgr.sticker_png_url(rep_pic_url)
                         url_val_result = True
                     else:
-                        url_val_result = True if validators.url(rep) and urlparse(rep).scheme == 'https' else False
+                        url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
 
                     if type(url_val_result) is bool and url_val_result:
                         results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, False, True)
