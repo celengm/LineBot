@@ -631,15 +631,11 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
         msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_stk_repl if is_sticker_kw else msg_event_type.recv_txt_repl)
         result = res[0]
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'))
-        
-        print result
-        print int(kwdict_col.id)
-        print result[int(kwdict_col.id)]
 
         if result[int(kwdict_col.is_pic_reply)]:                                                                         
             api_reply(token, TemplateSendMessage(
-                alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n\n{}關鍵字ID: {}'.format(
-                    u'' if reply_obj['attachment'] is None else u'{}\n'.format(reply_obj['attachment']),
+                alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}關鍵字ID: {}'.format(
+                    u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
                     reply_obj['main'], 
                     result[int(kwdict_col.id)]),
                 template=ButtonsTemplate(text=u'{}ID: {}'.format(
