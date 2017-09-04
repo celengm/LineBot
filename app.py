@@ -505,7 +505,7 @@ def handle_content_message(event):
                 tf.write(chunk)
             tempfile_path = tf.name
 
-            dest_path = tempfile_path + '.' + ext
+            dest_path = tempfile_path + '.jpg'
             dest_name = os.path.basename(dest_path)
             os.rename(tempfile_path, dest_path)
 
