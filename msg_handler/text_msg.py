@@ -138,11 +138,12 @@ class text_msg(object):
                 text = error.main.lack_of_thing(u'參數')
 
             if results is not None:
-                text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
-                for result in results:
-                    text += kw_dict_mgr.entry_basic_info(result)
-            elif isinstance(results, str):
-                text = results
+                if isinstance(results, str):
+                    text = results
+                else:
+                    text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
+                    for result in results:
+                        text += kw_dict_mgr.entry_basic_info(result)
 
         return text
 
