@@ -273,7 +273,7 @@ class kw_dict_mgr(object):
         text = u'ID: {}\n'.format(entry_row[int(kwdict_col.id)])
 
         kw = entry_row[int(kwdict_col.keyword)].decode('utf-8')
-        reply_iter = kw_dict_mgr.split_reply(entry_row[int(kwdict_col.reply)])
+        reply_iter = kw_dict_mgr.split_reply(entry_row[int(kwdict_col.reply)].decode('utf-8'))
         reply_iter_attachment = reply_iter['attachment']
         is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
 
