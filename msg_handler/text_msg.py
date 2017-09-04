@@ -138,6 +138,7 @@ class text_msg(object):
                 text = error.main.lack_of_thing(u'參數')
 
             if results is not None:
+                print results
                 if isinstance(results, str):
                     text = results
                 else:
