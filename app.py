@@ -105,7 +105,7 @@ if imgur_client_id is None:
 if imgur_client_secret is None:
     print('Specify IMGUR_CLIENT_SECRET environment variable.')
     sys.exit(1)
-imgur = ImgurClient(client_id, client_secret)
+imgur = ImgurClient(imgur_client_id, imgur_client_secret)
 imgur_api = imgur_proc(imgur)
 
 
