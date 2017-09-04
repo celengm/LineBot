@@ -501,7 +501,7 @@ def handle_content_message(event):
         message_content = line_api.get_content(msg.id)
 
         with open(image_temp_path + 'image.jpg', 'w+') as f:
-            for chunk in message_content.iter_content:
+            for chunk in message_content.iter_content():
                 f.write(chunk)
 
             tempfile_path = image_temp_path + 'image.jpg'
