@@ -170,6 +170,9 @@ class line_api_proc(object):
             if ex.status_code == 404:
                 return None
 
+    def get_content(self, msg_id):
+        return self._line_api.get_message_content(msg_id)
+
     @staticmethod
     def source_channel_id(event_source):
         return event_source.sender_id
@@ -185,6 +188,37 @@ class line_api_proc(object):
     @staticmethod
     def is_valid_room_group_id(uid):
         return uid is not None and len(uid) == 33 and (uid.startswith('C') or uid.startswith('R'))
+
+class imgur_proc(object):
+    def __init__(self, imgur_api):
+        self._imgur_api = imgur_api
+
+    def upload(self, path):
+        return self._imgur_api.upload_from_path(path)
+
+    @property
+    def user_limit(self):
+        return self._imgur_api.credits['UserLimit']
+
+    @property
+    def user_remaining(self):
+        return self._imgur_api.credits['UserRemaining']
+
+    @property
+    def user_reset(self):
+        """UNIX EPOCH @UTC"""
+        return self._imgur_api.credits['UserReset']
+
+    @property
+    def client_limit(self):
+        return self._imgur_api.credits['ClientLimit']
+
+    @property
+    def client_remaining(self):
+        return self._imgur_api.credits['ClientRemaining']
+
+
+
 
 def string_can_be_int(s):
     try:

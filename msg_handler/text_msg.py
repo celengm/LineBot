@@ -4,6 +4,7 @@ import validators
 import urllib
 from urlparse import urlparse
 import requests
+from datetime import datetime
 
 from flask import Flask, request, abort, url_for
 import hashlib 
@@ -33,7 +34,10 @@ from tool import mff, random_gen
 from db.msg_track import msg_event_type
 
 class text_msg(object):
-    def __init__(self, api_proc, kw_dict_mgr, group_ban, msg_trk, oxford_obj, permission_key_list, system_data, game_object, webpage_generator):
+    def __init__(self, api_proc, kw_dict_mgr, 
+                 group_ban, msg_trk, oxford_obj, permission_key_list, 
+                 system_data, game_object, webpage_generator,
+                 imgur_api_proc):
         self.kwd = kw_dict_mgr
         self.gb = group_ban
         self.msg_trk = msg_trk
@@ -43,6 +47,7 @@ class text_msg(object):
         self.system_data = system_data
         self.game_object = game_object
         self.webpage_generator = webpage_generator
+        self.imgur_api_proc = imgur_api_proc
 
     def S(self, src, params):
         key = params.pop(1)
@@ -308,6 +313,8 @@ class text_msg(object):
         return text
 
     def P(self, src, params):
+        wrong_param1 = error.main.invalid_thing_with_correct_format(u'參數1', u'MSG、KW、IMG或SYS', params[1])
+
         if params[1] is not None:
             category = params[1]
 
@@ -380,10 +387,30 @@ class text_msg(object):
                 text += u'\n\n【內建小工具相關】\nMFF傷害計算輔助 - {}'.format(self.system_data.helper_cmd_dict['MFF'].count)
                 text += u'\n計算機 - {}'.format(self.system_data.helper_cmd_dict['CALC'].count)
                 text += u'\n\n【小遊戲相關】\n猜拳遊戲數量 - {}\n猜拳次數 - {}'.format(self.game_object.rps_instance_count, self.system_data.game_cmd_dict['RPS'].count)
+            elif category == 'IMG':
+                import socket
+                 
+                ip_address = socket.gethostbyname(socket.getfqdn(socket.gethostname()))
+                
+                user_limit = self.imgur_api_proc.user_limit
+                user_remaining = self.imgur_api_proc.user_remaining
+                user_reset = self.imgur_api_proc.user_reset
+                client_limit = self.imgur_api_proc.client_limit
+                client_remaining = self.imgur_api_proc.client_remaining
+
+                text = u'【IMGUR API相關資料】\n'
+                text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
+
+                text += u'連結IP: {}\n'.format(ip_address)
+                text += u'IP可用積分: {} ({:.2%})\n'.format(user_remaining, user_remaining / float(user_limit))
+                text += u'IP上限積分: {}\n'.format(user_limit)
+                text += u'IP積分重設時間: {}\n\n'.format(datetime.fromtimestamp(float(user_reset)).strftime('%Y-%m-%d %H:%M:%S'))
+                text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, client_remaining / float(client_limit))
+                text += u'今日API上限積分: {}'.format(client_limit)
             else:
-                text = error.main.invalid_thing_with_correct_format(u'參數1', u'GRP、KW或SYS', params[1])
+                text = wrong_param1
         else:
-            text = error.main.incorrect_param(u'參數1', u'MSG、KW或SYS')
+            text = wrong_param1
 
         return text
 

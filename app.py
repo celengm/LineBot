@@ -2,11 +2,14 @@
 
 # import custom module
 from bot import webpage_auto_gen, game_objects
-from bot.system import line_api_proc, string_can_be_int, system_data
+from bot.system import line_api_proc, string_can_be_int, system_data, imgur_proc
 
 import msg_handler
 
-import errno, os, sys, tempfile
+import errno
+import os
+import sys
+import tempfile
 import traceback
 import validators
 import time
@@ -33,7 +36,7 @@ from tool import mff, random_gen, txt_calc
 # games import
 import game
 
-# import from LINE Messaging API
+# import LINE Messaging API
 from linebot import (
     LineBotApi, WebhookHandler, exceptions
 )
@@ -48,6 +51,10 @@ from linebot.models import (
     UnfollowEvent, FollowEvent, JoinEvent, LeaveEvent, BeaconEvent
 )
 
+# import imgur API
+from imgurpython import ImgurClient
+from imgurpython.helpers.error import ImgurClientError
+
 # Databases initialization
 kwd = kw_dict_mgr("postgres", os.environ["DATABASE_URL"])
 gb = group_ban("postgres", os.environ["DATABASE_URL"])
@@ -58,10 +65,11 @@ app = Flask(__name__)
 sys_data = system_data()
 game_data = game_objects()
 
-# Line Bot Environment initialization
+# System initialization
 MAIN_UID_OLD = 'Ud5a2b5bb5eca86342d3ed75d1d606e2c'
 MAIN_UID = 'U089d534654e2c5774624e8d8c813000e'
 main_silent = False
+
 administrator = os.getenv('ADMIN', None)
 group_admin = os.getenv('G_ADMIN', None)
 group_mod = os.getenv('G_MOD', None)
@@ -74,17 +82,32 @@ if group_admin is None:
 if group_mod is None:
     print('The SHA224 of G_MOD not defined. Program will be terminated.')
     sys.exit(1)
+    
+# Line Bot API instantiation
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
 if channel_secret is None:
-    print('Specify LINE_CHANNEL_SECRET as environment variable.')
+    print('Specify LINE_CHANNEL_SECRET environment variable.')
     sys.exit(1)
 if channel_access_token is None:
-    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
+    print('Specify LINE_CHANNEL_ACCESS_TOKEN environment variable.')
     sys.exit(1)
 api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 line_api = line_api_proc(api)
+
+# Imgur APi instantiation
+imgur_client_id = os.getenv('IMGUR_CLIENT_ID', None)
+imgur_client_secret = os.getenv('IMGUR_CLIENT_SECRET', None)
+if imgur_client_id is None:
+    print('Specify IMGUR_CLIENT_ID environment variable.')
+    sys.exit(1)
+if imgur_client_secret is None:
+    print('Specify IMGUR_CLIENT_SECRET environment variable.')
+    sys.exit(1)
+imgur = ImgurClient(client_id, client_secret)
+imgur_api = imgur_proc(imgur)
+
 
 # Oxford Dictionary Environment initialization
 oxford_dict_obj = msg_handler.oxford_dict('en')
@@ -96,7 +119,9 @@ static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 webpage_generator = webpage_auto_gen.webpage()
 
 # Message handler initialization
-command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track, oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, game_data, webpage_generator)
+command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track, 
+                                        oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, 
+                                        game_data, webpage_generator, imgur_api)
 game_executor = msg_handler.game_msg(game_data, line_api)
 
 # function for create tmp dir for download content
@@ -110,7 +135,6 @@ def make_static_tmp_dir():
             raise
 
 # TODO: make error become object (time, detail, url, error type)
-
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -126,7 +150,8 @@ def callback():
         handler.handle(body, signature)
 
         # Multi Thread
-        # HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        # HandleThread = threading.Thread(target=handler.handle, args=(body,
+        # signature))
         # HandleThread.start()
     except exceptions.InvalidSignatureError:
         abort(400)
@@ -392,7 +417,7 @@ def handle_text_message(event):
                     return
     except exceptions.LineBotApiError as ex:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
-        text += u'LINE API錯誤，狀態碼: {}\n\n'.format(ex.status_code)
+        text += u'LINE API發生錯誤，狀態碼: {}\n\n'.format(ex.status_code)
         for err in ex.error.details:
             text += u'錯誤內容: {}\n錯誤訊息: {}\n'.format(err.property, err.message.decode("utf-8"))
 
@@ -408,29 +433,17 @@ def handle_text_message(event):
     return 
 
     if text == 'confirm':
-        confirm_template = ConfirmTemplate(text='Do it?', actions=[
-            MessageTemplateAction(label='Yes', text='Yes!'),
-            MessageTemplateAction(label='No', text='No!'),
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='Confirm alt text', template=confirm_template)
+        confirm_template = ConfirmTemplate(text='Do it?', actions=[MessageTemplateAction(label='Yes', text='Yes!'),
+            MessageTemplateAction(label='No', text='No!'),])
+        template_message = TemplateSendMessage(alt_text='Confirm alt text', template=confirm_template)
         api_reply(event.reply_token, template_message, src)
     elif text == 'carousel':
-        carousel_template = CarouselTemplate(columns=[
-            CarouselColumn(text='hoge1', title='fuga1', actions=[
-                URITemplateAction(
-                    label='Go to line.me', uri='https://line.me'),
-                PostbackTemplateAction(label='ping', data='ping')
-            ]),
-            CarouselColumn(text='hoge2', title='fuga2', actions=[
-                PostbackTemplateAction(
-                    label='ping with text', data='ping',
+        carousel_template = CarouselTemplate(columns=[CarouselColumn(text='hoge1', title='fuga1', actions=[URITemplateAction(label='Go to line.me', uri='https://line.me'),
+                PostbackTemplateAction(label='ping', data='ping')]),
+            CarouselColumn(text='hoge2', title='fuga2', actions=[PostbackTemplateAction(label='ping with text', data='ping',
                     text='ping'),
-                MessageTemplateAction(label='Translate Rice', text='米')
-            ]),
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='Buttons alt text', template=carousel_template)
+                MessageTemplateAction(label='Translate Rice', text='米')]),])
+        template_message = TemplateSendMessage(alt_text='Buttons alt text', template=carousel_template)
         api_reply(event.reply_token, template_message, src)
 
 
@@ -442,7 +455,7 @@ def handle_sticker_message(event):
     src = event.source
     cid = line_api_proc.source_channel_id(src)
     
-    # TODO: Modulize handle received sticker message 
+    # TODO: Modulize handle received sticker message
     sys_data.set_last_sticker(cid, sticker_id)
 
     global game_data
@@ -464,16 +477,56 @@ def handle_sticker_message(event):
         else:
             kwdata = u'無相關回覆組ID。\n'
 
-        api_reply(
-                rep,
+        api_reply(rep,
                 [TextSendMessage(text=kwdata + u'貼圖圖包ID: {}\n貼圖圖片ID: {}'.format(package_id, sticker_id)),
                  TextSendMessage(text=u'圖片路徑(Android):\nemulated\\0\\Android\\data\\jp.naver.line.android\\stickers\\{}\\{}'.format(package_id, sticker_id)),
                  TextSendMessage(text=u'圖片路徑(Windows):\nC:\\Users\\USER_NAME\\AppData\\Local\\LINE\\Data\\Sticker\\{}\\{}'.format(package_id, sticker_id)),
                  TextSendMessage(text=u'圖片路徑(網路):\n{}'.format(kw_dict_mgr.sticker_png_url(sticker_id)))],
-                src
-            )
+                src)
     else:
         auto_reply_system(rep, sticker_id, True, src)
+
+
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_content_message(event):
+    msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_pic)
+    
+    token = event.reply_token
+    msg = event.message
+    src = event.source
+
+    if isinstance(msg, ImageMessage):
+        ext = 'jpg'
+    else:
+        return
+
+    try:
+        message_content = line_api.get_content(msg.id)
+
+        with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
+            for chunk in message_content.iter_content():
+                tf.write(chunk)
+            tempfile_path = tf.name
+
+        dist_path = tempfile_path + '.' + ext
+        dist_name = os.path.basename(dist_path)
+        os.rename(tempfile_path, dist_path)
+
+        api_reply(token, [TextSendMessage(text='Save content.'),
+                TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))], src)
+    except ImgurClientError as e:
+        text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
+        text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message.decode("utf-8"))
+
+        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        api_reply(token, TextSendMessage(text=error_msg), src)
+    except Exception as exc:
+        text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        text += u'錯誤種類: {}\n\n第{}行 - {}'.format(exc_type, exc_tb.tb_lineno, exc.message.decode("utf-8"))
+        
+        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        api_reply(token, TextSendMessage(text=error_msg), src)
 
 
 
@@ -482,8 +535,7 @@ def handle_sticker_message(event):
 def handle_postback(event):
     return
     if event.postback.data == 'ping':
-        api_reply(
-            event.reply_token, TextSendMessage(text='pong'), event.source)
+        api_reply(event.reply_token, TextSendMessage(text='pong'), event.source)
 
 
 # Incomplete
@@ -492,14 +544,10 @@ def handle_location_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_txt)
     return
 
-    api_reply(
-        event.reply_token,
-        LocationSendMessage(
-            title=event.message.title, address=event.message.address,
-            latitude=event.message.latitude, longitude=event.message.longitude
-        ),
-        event.source
-    )
+    api_reply(event.reply_token,
+        LocationSendMessage(title=event.message.title, address=event.message.address,
+            latitude=event.message.latitude, longitude=event.message.longitude),
+        event.source)
 
 
 # Incomplete
@@ -527,11 +575,8 @@ def handle_content_message(event):
     dist_name = os.path.basename(dist_path)
     os.rename(tempfile_path, dist_path)
 
-    api_reply(
-        event.reply_token, [
-            TextSendMessage(text='Save content.'),
-            TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))
-        ], event.source)
+    api_reply(event.reply_token, [TextSendMessage(text='Save content.'),
+            TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))], event.source)
 
 
 @handler.add(FollowEvent)
@@ -573,15 +618,11 @@ def handle_join(event):
 
 
 def introduction_template():
-    buttons_template = ButtonsTemplate(
-            title=u'機器人簡介', text='歡迎使用小水母！', 
-            actions=[
-                URITemplateAction(label=u'點此開啟使用說明', uri='https://sites.google.com/view/jellybot'),
+    buttons_template = ButtonsTemplate(title=u'機器人簡介', text='歡迎使用小水母！', 
+            actions=[URITemplateAction(label=u'點此開啟使用說明', uri='https://sites.google.com/view/jellybot'),
                 URITemplateAction(label=u'點此導向開發者LINE帳號', uri='http://line.me/ti/p/~raenonx'),
-                MessageTemplateAction(label=u'點此查看群組資料', text='JC\nG')
-            ])
-    template_message = TemplateSendMessage(
-        alt_text=u'機器人簡介', template=buttons_template)
+                MessageTemplateAction(label=u'點此查看群組資料', text='JC\nG')])
+    template_message = TemplateSendMessage(alt_text=u'機器人簡介', template=buttons_template)
     return template_message
 
 
@@ -633,13 +674,10 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'))
 
         if result[int(kwdict_col.is_pic_reply)]:                                                                         
-            api_reply(token, TemplateSendMessage(
-                alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n關鍵字ID: {}'.format(
-                    u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
+            api_reply(token, TemplateSendMessage(alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n關鍵字ID: {}'.format(u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
                     reply_obj['main'], 
                     result[int(kwdict_col.id)]),
-                template=ButtonsTemplate(text=u'{}ID: {}'.format(
-                    u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
+                template=ButtonsTemplate(text=u'{}ID: {}'.format(u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
                     result[int(kwdict_col.id)]), 
                     thumbnail_image_url=reply_obj['main'],
                     actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
