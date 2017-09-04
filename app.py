@@ -633,6 +633,8 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'))
         
         print result
+        print int(kwdict_col.id)
+        print result[int(kwdict_col.id)]
 
         if result[int(kwdict_col.is_pic_reply)]:                                                                         
             api_reply(token, TemplateSendMessage(
@@ -640,7 +642,7 @@ def auto_reply_system(token, keyword, is_sticker_kw, src):
                     u'' if reply_obj['attachment'] is None else u'{}\n'.format(reply_obj['attachment']),
                     reply_obj['main'], 
                     result[int(kwdict_col.id)]),
-                template=ButtonsTemplate(text=u'{}\n\nID: {}'.format(
+                template=ButtonsTemplate(text=u'{}ID: {}'.format(
                     u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
                     result[int(kwdict_col.id)]), 
                     thumbnail_image_url=reply_obj['main'],
