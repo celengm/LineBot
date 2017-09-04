@@ -505,12 +505,12 @@ def handle_content_message(event):
         with tempfile.NamedTemporaryFile(dir=static_tmp_path) as tf:
             for chunk in message_content.iter_content():
                 tf.write(chunk)
-            tempfile_file = os.path.basename(tf.name)
-            tempfile_flle_new = tempfile_file + '.jpg'
+            tempfile_path = tf.name
             
-            os.rename(tempfile_file, tempfile_flle_new)
+            dist_path = tempfile_path + '.' + ext
+            os.rename(tempfile_path, dist_path)
 
-            imgur_url = imgur_api.upload(os.path.join('static', 'tmp', tempfile_flle_new))
+            imgur_url = imgur_api.upload(os.path.join('static', 'tmp', dist_path))
             tf.close()
 
         api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
