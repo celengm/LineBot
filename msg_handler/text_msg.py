@@ -430,7 +430,7 @@ class text_msg(object):
                         u'副管II': group_detail[int(gb_col.moderator2)], u'副管III': group_detail[int(gb_col.moderator3)]}
 
                 group_tracking_data = self.msg_trk.get_data(gid)
-                text = message_tracker.entry_detail(group_tracking_data, self.msg_trk)
+                text = message_tracker.entry_detail(group_tracking_data, self.gb)
 
                 for txt, uid in uids.items():
                     if uid is not None:
