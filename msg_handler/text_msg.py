@@ -404,7 +404,7 @@ class text_msg(object):
                 text += u'連結IP: {}\n'.format(ip_address)
                 text += u'IP可用積分: {} ({:.2%})\n'.format(user_remaining, user_remaining / float(user_limit))
                 text += u'IP上限積分: {}\n'.format(user_limit)
-                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format(datetime.fromtimestamp(float(user_reset)).strftime('%Y-%m-%d %H:%M:%S') + timedelta(hours=9))
+                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format((datetime.fromtimestamp(float(user_reset)) + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
                 text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, client_remaining / float(client_limit))
                 text += u'今日API上限積分: {}'.format(client_limit)
             else:
@@ -429,24 +429,14 @@ class text_msg(object):
                 uids = {u'管理員': group_detail[int(gb_col.admin)], u'副管I': group_detail[int(gb_col.moderator1)], 
                         u'副管II': group_detail[int(gb_col.moderator2)], u'副管III': group_detail[int(gb_col.moderator3)]}
 
-                text = u'群組/房間頻道ID: {}\n'.format(gid)
-                if group_detail is not None:
-                    text += u'\n自動回覆機能狀態【{}】'.format(u'已停用' if group_detail[int(gb_col.silence)] else u'使用中')
-                    for txt, uid in uids.items():
-                        if uid is not None:
-                            prof = self.api_proc.profile(uid)
-                            text += u'\n\n{}: {}\n'.format(txt, error.main.line_account_data_not_found() if prof is None else prof.display_name)
-                            text += u'{} 使用者ID: {}'.format(txt, uid)
-                else:
-                    text += u'\n自動回覆機能狀態【使用中】'
-
                 group_tracking_data = self.msg_trk.get_data(gid)
-                text += u'\n\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_msg)], 
-                                                                                    group_tracking_data[int(msg_track_col.stk_msg)])
-                text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_msg_trig)], 
-                                                                                 group_tracking_data[int(msg_track_col.stk_msg_trig)])
-                text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_rep)], 
-                                                                    group_tracking_data[int(msg_track_col.stk_rep)])
+                text = message_tracker.entry_detail(group_tracking_data, self.msg_trk)
+
+                for txt, uid in uids.items():
+                    if uid is not None:
+                        prof = self.api_proc.profile(uid)
+                        text += u'\n\n{}: {}\n'.format(txt, error.main.line_account_data_not_found() if prof is None else prof.display_name)
+                        text += u'{} 使用者ID: {}'.format(txt, uid)
             else:
                 text = error.main.invalid_thing_with_correct_format(u'群組/房間ID', u'R或C開頭，並且長度為33字元', gid)
 

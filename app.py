@@ -132,7 +132,7 @@ def make_tmp_dir():
         else:
             raise
 
-# TODO: make error become object (time, detail, url, error type)
+# TODO: make error an object (time, detail, url, error type)
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -509,6 +509,7 @@ def handle_content_message(event):
             dest_name = os.path.basename(dest_path)
             os.rename(tempfile_path, dest_path)
 
+            # TODO: ERROR DEBUG, IMGUR API SUPPORT CONTACTED. ({u'type': u'Exception_Logged', u'exception': {}, u'message': u'Failed stripping metadata', u'code': 1001})
             # imgur_url = imgur_api.upload(dest_path)
 
             import binascii
