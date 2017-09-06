@@ -63,7 +63,7 @@ class kw_dict_mgr(object):
 
         is_illegal_reply_attachment = lambda reply_obj: {'is_legal': reply_obj['attachment'] is not None and len(reply_obj['attachment']) <= 50, 
                                                          'test_reply_object': reply_obj}
-        illegal_reply_object_test = is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply))
+        illegal_reply_object_test = is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply, is_pic_reply))
 
         if keyword.replace(' ', '') == '':
             return error.main.invalid_thing_with_correct_format(u'關鍵字', u'字數大於0，但小於500字(中文250字)的字串', keyword)
@@ -274,7 +274,7 @@ class kw_dict_mgr(object):
         text = u'ID: {}\n'.format(entry_row[int(kwdict_col.id)])
 
         kw = entry_row[int(kwdict_col.keyword)].decode('utf-8')
-        reply_iter = kw_dict_mgr.split_reply(entry_row[int(kwdict_col.reply)].decode('utf-8'))
+        reply_iter = kw_dict_mgr.split_reply(entry_row[int(kwdict_col.reply)].decode('utf-8'), entry_row[int(kwdict_col.is_pic_reply)])
         reply_iter_attachment = reply_iter['attachment']
         is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
 
@@ -384,7 +384,7 @@ class kw_dict_mgr(object):
         return sticker_url.replace('https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/', '').replace('/android/sticker.png', '')
 
     @staticmethod
-    def split_reply(reply_text_in_db):
+    def split_reply(reply_text_in_db, is_pic_reply=True):
         """
         return:
             ['main'] = main part of reply
@@ -392,8 +392,11 @@ class kw_dict_mgr(object):
         """
         from msg_handler.text_msg import split
 
-        reply_splitter = '  '
-        split_iter = split(reply_text_in_db, reply_splitter, 2)
+        if is_pic_reply:
+            reply_splitter = '  '
+            split_iter = split(reply_text_in_db, reply_splitter, 2)
+        else:
+            split_iter = [reply_text_in_db, None]
 
         return {'main': split_iter[0], 'attachment': split_iter[1]}
 
