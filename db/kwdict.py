@@ -58,8 +58,15 @@ class kw_dict_mgr(object):
         return cmd
 
     def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
+        print keyword
+        print reply
+
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
+
+        print keyword
+        print reply
+
         is_illegal_reply_attachment = lambda reply_obj: {'is_legal': reply_obj['attachment'] is not None and len(reply_obj['attachment']) <= 50, 
                                                          'test_reply_object': reply_obj}
         illegal_reply_object_test = is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply))
