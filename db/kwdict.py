@@ -58,14 +58,14 @@ class kw_dict_mgr(object):
         return cmd
 
     def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
-        print unicode(keyword)
-        print unicode(reply)
+        print keyword.encode('utf-8')
+        print reply.encode('utf-8')
 
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
         
-        print unicode(keyword)
-        print unicode(reply)
+        print keyword.encode('utf-8')
+        print reply.encode('utf-8')
 
         is_illegal_reply_attachment = lambda reply_obj: {'is_legal': reply_obj['attachment'] is not None and len(reply_obj['attachment']) <= 50, 
                                                          'test_reply_object': reply_obj}
