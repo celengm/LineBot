@@ -150,7 +150,7 @@ class group_ban(object):
         mod_col_dict = {1: 'moderator1', 2: 'moderator2', 3: 'moderator3'}
         mod_sha_dict = {1: 'moderator1_sha', 2: 'moderator2_sha', 3: 'moderator3_sha'}
 
-        cmd_check = u'SELECT * FROM group_ban WHERE (admin_sha = %(key)s OR {} = %(key)s) AND %(gid)s'.format(mod_sha_dict[moderator_pos])
+        cmd_check = u'SELECT * FROM group_ban WHERE (admin_sha = %(key)s OR {} = %(key)s) AND groupId = %(gid)s'.format(mod_sha_dict[moderator_pos])
         cmd_check_dict = {'key': hashlib.sha224(key).hexdigest(),
                           'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
