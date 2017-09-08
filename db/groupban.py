@@ -90,11 +90,13 @@ class group_ban(object):
     def set_silence(self, groupId, set, key):
         if len(groupId) != self.id_length:
             return error.error.main.invalid_length(u'群組/房間ID', 33)
-        cmd_check = u'SELECT * FROM group_ban WHERE admin_sha = %(key)s OR \
+        cmd_check = u'SELECT * FROM group_ban WHERE (admin_sha = %(key)s OR \
                                                     moderator1_sha = %(key)s OR \
                                                     moderator2_sha = %(key)s OR \
-                                                    moderator3_sha = %(key)s'
-        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest()}
+                                                    moderator3_sha = %(key)s) AND \
+                                                    groupId = %(gid)s'
+        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest(), 
+                          'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
         if len(results) >= 1:
             cmd = u'UPDATE group_ban SET silence = %(set)s WHERE groupId = %(id)s'
@@ -102,13 +104,14 @@ class group_ban(object):
             self.sql_cmd(cmd, cmd_dict)
             return True
         else:
-            return error.error.main.incorrect_password()
+            return error.error.main.incorrect_password_or_insufficient_permission()
 
     def change_admin(self, groupId, newAdminUID, key, newkey):
         if len(newAdminUID) != self.id_length or len(groupId) != self.id_length:
             return error.error.main.invalid_length(u'群組/房間ID 或 管理員UID', 33)
-        cmd_check = u'SELECT * FROM group_ban WHERE admin_sha = %(key)s'
-        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest()}
+        cmd_check = u'SELECT * FROM group_ban WHERE admin_sha = %(key)s AND groupId = %(gid)s'
+        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest(),
+                          'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
 
         if len(results) >= 1:
@@ -117,7 +120,7 @@ class group_ban(object):
             self.sql_cmd(cmd, cmd_dict)
             return True
         else:
-            return error.error.main.incorrect_password()
+            return error.error.main.incorrect_password_or_insufficient_permission()
 
     def set_mod1(self, groupId, newModUID, key, newkey):
         return self._set_moderator(groupId, 1, newModUID, key, newkey)
@@ -147,8 +150,9 @@ class group_ban(object):
         mod_col_dict = {1: 'moderator1', 2: 'moderator2', 3: 'moderator3'}
         mod_sha_dict = {1: 'moderator1_sha', 2: 'moderator2_sha', 3: 'moderator3_sha'}
 
-        cmd_check = u'SELECT * FROM group_ban WHERE admin_sha = %(key)s OR {} = %(key)s'.format(mod_sha_dict[moderator_pos])
-        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest()}
+        cmd_check = u'SELECT * FROM group_ban WHERE (admin_sha = %(key)s OR {} = %(key)s) AND %(gid)s'.format(mod_sha_dict[moderator_pos])
+        cmd_check_dict = {'key': hashlib.sha224(key).hexdigest(),
+                          'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
         
         if len(results) >= 1:
@@ -160,7 +164,7 @@ class group_ban(object):
             self.sql_cmd(cmd, cmd_dict)
             return True
         else:
-            return error.error.main.incorrect_password()
+            return error.error.main.incorrect_password_or_insufficient_permission()
 
 
 

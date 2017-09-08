@@ -17,8 +17,8 @@ class error(object):
 
     class main(object):
         @staticmethod
-        def incorrect_password():
-            return u'密碼錯誤。'
+        def incorrect_password_or_insufficient_permission():
+            return u'密碼錯誤或權限不足。'
 
         @staticmethod
         def invalid_thing(name_of_thing, thing):
