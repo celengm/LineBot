@@ -16,8 +16,6 @@ from linebot.models import TextSendMessage
 class webpage(object):
     def __init__(self, flask_app):
         self._flask_app = flask_app
-        self._app_root_url = self._flask_app.config.get('SERVER_NAME')
-        print self._app_root_url
         self._error_route = 'Error'
         self._query_route = 'FullQuery'
         self._info_route = 'FullInfo'
@@ -40,8 +38,8 @@ class webpage(object):
             self._page_content[self._error_route][timestamp] = err_detail
 
             err_list = u'詳細錯誤URL: {}\n錯誤清單: {}'.format(
-                self._app_root_url + url_for('get_error_message', timestamp=timestamp)[1:],
-                self._app_root_url + url_for('get_error_list')[1:])
+                url_for('get_error_message', timestamp=timestamp),
+                url_for('get_error_list'))
             
             return err_sum + u'\n\n' + err_list
     
@@ -49,13 +47,13 @@ class webpage(object):
         with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._query_route][timestamp] = full_query
-            return self._app_root_url + url_for('full_query', timestamp=timestamp)[1:]
+            return url_for('full_query', timestamp=timestamp)
     
     def rec_info(self, full_info):
         with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._info_route][timestamp] = full_info
-            return self._app_root_url + url_for('full_info', timestamp=timestamp)[1:]
+            return url_for('full_info', timestamp=timestamp)
     
     def rec_text(self, textmsg_list):
         with self._flask_app.app_context():
@@ -64,10 +62,8 @@ class webpage(object):
     
             timestamp = str(int(time.time()))
             self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
-            print url_for('full_content', timestamp=timestamp)[1:]
-            print self._app_root_url
-
-            return self._app_root_url + url_for('full_content', timestamp=timestamp)[1:]
+            
+            return url_for('full_content', timestamp=timestamp)
 
     def error_timestamp_list(self):
         sorted_list = sorted(self._page_content[self._error_route].keys(), key=self._page_content[self._error_route].get, reverse=True)
