@@ -422,7 +422,7 @@ def handle_text_message(event):
                 if calc_result is not None:
                     calc_result_str = str(calc_result)
                     sys_data.helper_cmd_dict['CALC'].count += 1
-                    if len(calc_result_str) > 100:
+                    if len(calc_result_str) <= 100:
                         text = u'算式: {}\n\n計算結果: {}'.format('\n{}'.format(text) if '\n' in text else text, calc_result)
                     else:
                         text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(calc_result_str))
@@ -633,19 +633,17 @@ def introduction_template():
 
 def api_reply(reply_token, msgs, src):
     if not sys_data.silence:
-        if not isinstance(msgs, (list, tuple)):
+        if not isinstance(msgs, (list)):
             msgs = [msgs]
 
-        for msg in msgs:
+        for index, msg in enumerate(msgs):
             if isinstance(msg, TemplateSendMessage):
                 msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.send_stk)
             elif isinstance(msg, TextSendMessage):
                 msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.send_txt)
 
                 if len(msg.text) > 2000:
-                    line_api.reply_message(reply_token, 
-                                           TextSendMessage(text=error.main.text_length_too_long(webpage_generator.rec_text(msgs))))
-                    return
+                    msgs[index] = TextSendMessage(text=error.main.text_length_too_long(webpage_generator.rec_text(msg.text)))
 
         line_api.reply_message(reply_token, msgs)
     else:

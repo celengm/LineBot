@@ -53,13 +53,14 @@ class webpage(object):
             self._page_content[self._info_route][timestamp] = full_info
             return url_for('full_info', timestamp=timestamp)
     
-    def rec_text(self, textmsg_list):
+    def rec_text(self, text_list):
         with self._flask_app.app_context():
-            if not isinstance(textmsg_list, (list, tuple)):
-                textmsg_list = [textmsg_list]
+            if not isinstance(text_list, (list, tuple)):
+                text_list = [text_list]
     
             timestamp = str(int(time.time()))
-            self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
+            self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join(
+                [u'【Message {}】\n\n{}'.format(index, txt) for index, txt in enumerate(text_list, start=1)])
             
             return url_for('full_content', timestamp=timestamp)
 
