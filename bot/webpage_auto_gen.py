@@ -64,6 +64,9 @@ class webpage(object):
     
             timestamp = str(int(time.time()))
             self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
+            print url_for('full_content', timestamp=timestamp)[1:]
+            print self._app_root_url
+
             return self._app_root_url + url_for('full_content', timestamp=timestamp)[1:]
 
     def error_timestamp_list(self):
