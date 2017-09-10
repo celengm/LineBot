@@ -111,7 +111,7 @@ oxford_dict_obj = msg_handler.oxford_dict('en')
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
-webpage_generator = webpage_auto_gen.webpage(app)
+webpage_generator = webpage_auto_gen.webpage(app, request.url_root)
 
 # Message handler initialization
 command_executor = msg_handler.text_msg(app, line_api, kwd, gb, msg_track, 
