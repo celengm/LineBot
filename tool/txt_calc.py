@@ -47,6 +47,7 @@ class text_calculator(object):
     @staticmethod
     def remove_non_digit(text):
         import string
-        all = string.maketrans('','')
-        nodigs = all.translate(all, string.digits)
-        return text.translate(all, nodigs)
+        allchars = ''.join(chr(i) for i in xrange(256))
+        identity = string.maketrans('', '')
+        nondigits = allchars.translate(identity, string.digits)
+        return text.translate(identity, nondigits)
