@@ -83,7 +83,7 @@ class text_msg(object):
                 is_stk_int = system.string_can_be_int(kw)
                 is_kw_pic_hash = len(kw) == 56
                  
-                if action_kw != 'STK':
+                if action_kw != 'PIC':
                     results = None
                     text = error.main.incorrect_param(u'參數1', u'STK')
                 elif not is_stk_int or not is_kw_pic_hash:
@@ -108,7 +108,6 @@ class text_msg(object):
                         text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址')
 
             elif params[3] is not None:
-
                 rep = params[3]
                 rep_obj = kw_dict_mgr.split_reply(rep)
 
@@ -127,7 +126,7 @@ class text_msg(object):
                     else:
                         results = None
                         text = error.main.incorrect_param(u'參數3', u'HTTPS協定，並且是合法的網址')
-                elif params[1] == 'STK':
+                elif params[1] == 'PIC':
                     kw = params[2]
 
                     is_stk_int = system.string_can_be_int(kw)
