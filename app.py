@@ -116,7 +116,9 @@ if app_root_url is None:
     print 'Define App Root URL'
     sys.exit(1)
 else:
-    app.config.update(SERVER_NAME=app_root_url)
+    pass
+    print app.config.get('SERVER_NAME')
+    # app.config.update(SERVER_NAME=app_root_url)
 webpage_generator = webpage_auto_gen.webpage(app)
 
 # Message handler initialization
