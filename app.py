@@ -111,10 +111,10 @@ oxford_dict_obj = msg_handler.oxford_dict('en')
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
-webpage_generator = webpage_auto_gen.webpage()
+webpage_generator = webpage_auto_gen.webpage(app)
 
 # Message handler initialization
-command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track, 
+command_executor = msg_handler.text_msg(app, line_api, kwd, gb, msg_track, 
                                         oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, 
                                         game_data, webpage_generator, imgur_api)
 game_executor = msg_handler.game_msg(game_data, line_api)

@@ -6,7 +6,7 @@ from urlparse import urlparse
 import requests
 from datetime import datetime, timedelta
 
-from flask import Flask, request, abort, url_for
+from flask import request, url_for
 import hashlib 
 
 from linebot import (
@@ -34,10 +34,12 @@ from tool import mff, random_gen
 from db.msg_track import msg_event_type
 
 class text_msg(object):
-    def __init__(self, api_proc, kw_dict_mgr, 
+    def __init__(self, flask_app, api_proc, kw_dict_mgr, 
                  group_ban, msg_trk, oxford_obj, permission_key_list, 
                  system_data, game_object, webpage_generator,
                  imgur_api_proc):
+        self._flask_app = flask_app
+
         self.kwd = kw_dict_mgr
         self.gb = group_ban
         self.msg_trk = msg_trk
@@ -312,10 +314,11 @@ class text_msg(object):
                 Valid = False
 
             if Valid:
-                text += u'\n\n完整使用者排名: {}\n完整關鍵字排名: {}\n完整最新呼叫表: {}'.format(
-                    request.url_root + url_for('full_ranking', type='user')[1:],
-                    request.url_root + url_for('full_ranking', type='used')[1:],
-                    request.url_root + url_for('full_ranking', type='called')[1:])
+                with self._flask_app.test_request_context():
+                    text += u'\n\n完整使用者排名: {}\n完整關鍵字排名: {}\n完整最新呼叫表: {}'.format(
+                        request.url_root + url_for('full_ranking', type='user')[1:],
+                        request.url_root + url_for('full_ranking', type='used')[1:],
+                        request.url_root + url_for('full_ranking', type='called')[1:])
 
         return text
 
