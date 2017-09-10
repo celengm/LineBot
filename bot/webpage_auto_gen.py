@@ -8,7 +8,7 @@ import traceback
 
 import time
 from datetime import datetime, timedelta
-from flask import request, url_for, render_template
+from flask import Flask, request, url_for, render_template
 from flask.globals import current_app
 
 from linebot.models import TextSendMessage
@@ -24,10 +24,10 @@ class webpage(object):
                               self._query_route: defaultdict(unicode), 
                               self._info_route: defaultdict(unicode), 
                               self._text_route: defaultdict(unicode)}
-        print self._flask_app.request_context('/callback')
+
 
     def rec_error(self, err_sum, channel_id):
-        with self._flask_app.app_context():
+        with self._flask_app.test_request_context():
             timestamp = str(int(time.time()))
             err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
             err_detail += u'頻道ID: {}'.format(channel_id)
@@ -44,19 +44,19 @@ class webpage(object):
             return err_sum + u'\n\n' + err_list
     
     def rec_query(self, full_query):
-        with self._flask_app.app_context():
+        with self._flask_app.test_request_context():
             timestamp = str(int(time.time()))
             self._page_content[self._query_route][timestamp] = full_query
             return request.url_root + url_for('full_query', timestamp=timestamp)[1:]
     
     def rec_info(self, full_info):
-        with self._flask_app.app_context():
+        with self._flask_app.test_request_context():
             timestamp = str(int(time.time()))
             self._page_content[self._info_route][timestamp] = full_info
             return request.url_root + url_for('full_info', timestamp=timestamp)[1:]
     
     def rec_text(self, textmsg_list):
-        with self._flask_app.app_context():
+        with self._flask_app.test_request_context():
             if not isinstance(textmsg_list, (list, tuple)):
                 textmsg_list = [textmsg_list]
     
