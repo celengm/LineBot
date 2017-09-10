@@ -4,6 +4,7 @@ import validators
 import urllib
 from urlparse import urlparse
 import requests
+from datetime import datetime, timedelta
 
 from flask import Flask, request, abort, url_for
 import hashlib 
@@ -33,7 +34,10 @@ from tool import mff, random_gen
 from db.msg_track import msg_event_type
 
 class text_msg(object):
-    def __init__(self, api_proc, kw_dict_mgr, group_ban, msg_trk, oxford_obj, permission_key_list, system_data, game_object, webpage_generator):
+    def __init__(self, api_proc, kw_dict_mgr, 
+                 group_ban, msg_trk, oxford_obj, permission_key_list, 
+                 system_data, game_object, webpage_generator,
+                 imgur_api_proc):
         self.kwd = kw_dict_mgr
         self.gb = group_ban
         self.msg_trk = msg_trk
@@ -43,6 +47,7 @@ class text_msg(object):
         self.system_data = system_data
         self.game_object = game_object
         self.webpage_generator = webpage_generator
+        self.imgur_api_proc = imgur_api_proc
 
     def S(self, src, params):
         key = params.pop(1)
@@ -73,53 +78,65 @@ class text_msg(object):
                 kw = params[2]
                 action_rep = params[3]
                 rep = params[4]
+                rep_obj = kw_dict_mgr.split_reply(rep)
+
+                is_stk_int = system.string_can_be_int(kw)
+                is_kw_pic_hash = len(kw) == 56
                  
-                if action_kw != 'STK':
+                if action_kw != 'PIC':
                     results = None
                     text = error.main.incorrect_param(u'參數1', u'STK')
-                elif not system.string_can_be_int(kw):
+                elif not is_stk_int or not is_kw_pic_hash:
                     results = None
-                    text = error.main.incorrect_param(u'參數2', u'整數數字')
+                    text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
                 elif action_rep != 'PIC':
                     results = None
                     text =  error.main.incorrect_param(u'參數3', u'PIC')
                 else:
-                    if system.string_can_be_int(rep):
-                        rep = kw_dict_mgr.sticker_png_url(rep)
+                    rep_pic_url = rep_obj['main']
+
+                    if system.string_can_be_int(rep_pic_url):
+                        rep = rep.replace(rep_pic_url, kw_dict_mgr.sticker_png_url(rep_pic_url))
                         url_val_result = True
                     else:
-                        url_val_result = url_val_result = True if validators.url(rep) and urlparse(rep).scheme == 'https' else False
+                        url_val_result = url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
 
                     if type(url_val_result) is bool and url_val_result:
-                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, True, True)
+                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, is_stk_int, True, is_kw_pic_hash)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址。')
+                        text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址')
+
             elif params[3] is not None:
                 rep = params[3]
+                rep_obj = kw_dict_mgr.split_reply(rep)
 
                 if params[2] == 'PIC':
                     kw = params[1]
+                    rep_pic_url = rep_obj['main']
 
-                    if system.string_can_be_int(rep):
-                        rep = kw_dict_mgr.sticker_png_url(rep)
+                    if system.string_can_be_int(rep_pic_url):
+                        rep = kw_dict_mgr.sticker_png_url(rep_pic_url)
                         url_val_result = True
                     else:
-                        url_val_result = True if validators.url(rep) and urlparse(rep).scheme == 'https' else False
+                        url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
 
                     if type(url_val_result) is bool and url_val_result:
                         results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, False, True)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數3', u'HTTPS協定，並且是合法的網址。')
-                elif params[1] == 'STK':
+                        text = error.main.incorrect_param(u'參數3', u'HTTPS協定，並且是合法的網址')
+                elif params[1] == 'PIC':
                     kw = params[2]
 
-                    if system.string_can_be_int(kw):
-                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, True, False)
+                    is_stk_int = system.string_can_be_int(kw)
+                    is_kw_pic_hash = len(kw) == 56
+
+                    if is_stk_int ^ is_kw_pic_hash:
+                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, is_stk_int, False, is_kw_pic_hash)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數2', u'整數數字')
+                        text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
                 else:
                     text = error.main.unable_to_determine()
                     results = None
@@ -133,9 +150,12 @@ class text_msg(object):
                 text = error.main.lack_of_thing(u'參數')
 
             if results is not None:
-                text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
-                for result in results:
-                    text += kw_dict_mgr.entry_basic_info(result)
+                if isinstance(results, (str, unicode)):
+                    text = results
+                else:
+                    text = u'已新增回覆組。{}\n'.format(u'(置頂)' if pinned else '')
+                    for result in results:
+                        text += kw_dict_mgr.entry_basic_info(result)
 
         return text
 
@@ -238,7 +258,7 @@ class text_msg(object):
         return text
 
     def I(self, src, params):
-        error = False
+        error_occurred = False
         if params[2] is not None:
             action = params[1]
             pair_id = params[2]
@@ -246,14 +266,14 @@ class text_msg(object):
 
             if action != 'ID':
                 results = None
-                error = True
-                text += error.main.invalid_thing_with_correct_format(u'參數1', u'ID', action)
+                error_occurred = True
+                text += error_occurred.main.invalid_thing_with_correct_format(u'參數1', u'ID', action)
             else:
                 if system.string_can_be_int(pair_id):
                     results = self.kwd.get_info_id(pair_id)   
                 else:
                     results = None
-                    error = True
+                    error_occurred = True
                     text += error.main.invalid_thing_with_correct_format(u'參數2', u'正整數', pair_id)
         else:
             kw = params[1]
@@ -265,7 +285,7 @@ class text_msg(object):
             i_object = kw_dict_mgr.list_keyword_info(self.kwd, self.api_proc, results)
             text += i_object['limited']
             text += u'\n完整資訊URL: {}'.format(self.webpage_generator.rec_info(i_object['full']))
-        elif not error:
+        elif not error_occurred:
             text = error.main.miscellaneous(u'查無相符資料。')
 
         return text
@@ -300,6 +320,8 @@ class text_msg(object):
         return text
 
     def P(self, src, params):
+        wrong_param1 = error.main.invalid_thing_with_correct_format(u'參數1', u'MSG、KW、IMG或SYS', params[1])
+
         if params[1] is not None:
             category = params[1]
 
@@ -372,10 +394,30 @@ class text_msg(object):
                 text += u'\n\n【內建小工具相關】\nMFF傷害計算輔助 - {}'.format(self.system_data.helper_cmd_dict['MFF'].count)
                 text += u'\n計算機 - {}'.format(self.system_data.helper_cmd_dict['CALC'].count)
                 text += u'\n\n【小遊戲相關】\n猜拳遊戲數量 - {}\n猜拳次數 - {}'.format(self.game_object.rps_instance_count, self.system_data.game_cmd_dict['RPS'].count)
+            elif category == 'IMG':
+                import socket
+                 
+                ip_address = socket.gethostbyname(socket.getfqdn(socket.gethostname()))
+                
+                user_limit = self.imgur_api_proc.user_limit
+                user_remaining = self.imgur_api_proc.user_remaining
+                user_reset = self.imgur_api_proc.user_reset
+                client_limit = self.imgur_api_proc.client_limit
+                client_remaining = self.imgur_api_proc.client_remaining
+
+                text = u'【IMGUR API相關資料】\n'
+                text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
+
+                text += u'連結IP: {}\n'.format(ip_address)
+                text += u'IP可用積分: {} ({:.2%})\n'.format(user_remaining, user_remaining / float(user_limit))
+                text += u'IP上限積分: {}\n'.format(user_limit)
+                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format((datetime.fromtimestamp(float(user_reset)) + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
+                text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, client_remaining / float(client_limit))
+                text += u'今日API上限積分: {}'.format(client_limit)
             else:
-                text = error.main.invalid_thing_with_correct_format(u'參數1', u'GRP、KW或SYS', params[1])
+                text = wrong_param1
         else:
-            text = error.main.incorrect_param(u'參數1', u'MSG、KW或SYS')
+            text = wrong_param1
 
         return text
 
@@ -394,24 +436,14 @@ class text_msg(object):
                 uids = {u'管理員': group_detail[int(gb_col.admin)], u'副管I': group_detail[int(gb_col.moderator1)], 
                         u'副管II': group_detail[int(gb_col.moderator2)], u'副管III': group_detail[int(gb_col.moderator3)]}
 
-                text = u'群組/房間頻道ID: {}\n'.format(gid)
-                if group_detail is not None:
-                    text += u'\n自動回覆機能狀態【{}】'.format(u'已停用' if group_detail[int(gb_col.silence)] else u'使用中')
-                    for txt, uid in uids.items():
-                        if uid is not None:
-                            prof = self.api_proc.profile(uid)
-                            text += u'\n\n{}: {}\n'.format(txt, error.main.line_account_data_not_found() if prof is None else prof.display_name)
-                            text += u'{} 使用者ID: {}'.format(txt, uid)
-                else:
-                    text += u'\n自動回覆機能狀態【使用中】'
-
                 group_tracking_data = self.msg_trk.get_data(gid)
-                text += u'\n\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_msg)], 
-                                                                                    group_tracking_data[int(msg_track_col.stk_msg)])
-                text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_msg_trig)], 
-                                                                                 group_tracking_data[int(msg_track_col.stk_msg_trig)])
-                text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(group_tracking_data[int(msg_track_col.text_rep)], 
-                                                                    group_tracking_data[int(msg_track_col.stk_rep)])
+                text = message_tracker.entry_detail(group_tracking_data, self.gb)
+
+                for txt, uid in uids.items():
+                    if uid is not None:
+                        prof = self.api_proc.profile(uid)
+                        text += u'\n\n{}: {}\n'.format(txt, error.main.line_account_data_not_found() if prof is None else prof.display_name)
+                        text += u'{} 使用者ID: {}'.format(txt, uid)
             else:
                 text = error.main.invalid_thing_with_correct_format(u'群組/房間ID', u'R或C開頭，並且長度為33字元', gid)
 
@@ -443,75 +475,63 @@ class text_msg(object):
 
                 if action in action_dict:
                     settarget = action_dict[action]
+                    result = self.gb.set_silence(gid, str(settarget), pw)
 
-                    if self.gb.set_silence(gid, str(settarget), pw):
+                    if not isinstance(result, (str, unicode)) and result:
                         text = u'群組自動回覆功能已{}。\n\n群組/房間ID: {}'.format(status_silence[settarget], gid)
                     else:
-                        text = u'群組靜音設定變更失敗。\n\n群組/房間ID: {}'.format(gid)
+                        text = u'群組靜音設定變更失敗。\n錯誤: {}\n\n群組/房間ID: {}\n'.format(gid, result)
                 else:
                     text = error.main.invalid_thing(u'參數1(動作)', action)
             # Set new admin/moderator 
             elif perm >= 2 and param_count == 5:
                 action = params[1]
                 gid = params[2]
-                new_uid = params[3]
+                new_uid = None if params[3] == 'DELETE' else params[3]
                 pw = params[4]
-                new_pw = params[5]
+                new_pw = None if params[5] == 'DELETE' else params[5]
 
-                action_dict = {'SA': self.gb.change_admin, 
-                               'SM1': self.gb.set_mod1,
-                               'SM2': self.gb.set_mod2,
-                               'SM3': self.gb.set_mod3}
-                pos_name = {'SA': u'群組管理員',
-                            'SM1': u'群組副管 1',
-                            'SM2': u'群組副管 2',
-                            'SM3': u'群組副管 3'}
+                legal_action = ['SA', 'SM1', 'SM2', 'SM3', 'DM1', 'DM2', 'DM3']
 
-                line_profile = self.api_proc.profile(new_uid)
+                if action.startswith('S'):
+                    action_dict = {legal_action[0]: (self.gb.change_admin, u'群組管理員'), 
+                                   legal_action[1]: (self.gb.set_mod1, u'群組副管 1'), 
+                                   legal_action[2]: (self.gb.set_mod2, u'群組副管 2'), 
+                                   legal_action[3]: (self.gb.set_mod3, u'群組副管 3')}
 
-                if line_profile is not None:
-                    try:
-                        if action_dict[action](gid, new_uid, pw, new_pw):
-                            position = pos_name[action]
+                    line_profile = self.api_proc.profile(new_uid)
 
-                            text = u'群組管理員已變更。\n'
+                    if line_profile is not None:
+                        result = action_dict[action][0](gid, new_uid, pw, new_pw)
+                        position = action_dict[action][1]
+
+                        if not isinstance(result, (str, unicode)) and result:
+
+                            text = u'{}已變更。\n'.format(position)
                             text += u'群組/房間ID: {}\n\n'.format(gid)
                             text += u'新{}使用者ID: {}\n'.format(position, new_uid)
                             text += u'新{}使用者名稱: {}\n\n'.format(position, line_profile.display_name)
                             text += u'新{}密碼: {}\n'.format(position, new_pw)
                             text += u'請記好密碼，嚴禁洩漏，或在群頻中直接開關群組自動回覆功能！'
                         else:
-                            text = u'{}變更作業失敗。'.format(pos_name[action])
-                    except KeyError as Ex:
-                        text = error.main.invalid_thing(u'參數1(動作)', action)
-                else:
-                    text = error.main.line_account_data_not_found()
-            # Add new group - only execute when data not found
-            elif perm >= 3 and param_count == 4:
-                action = params[1]
-                gid = params[2]
-                uid = params[3]
-                pw = params[4]
-                
-                if action != 'N':
-                    text = error.main.invalid_thing(u'參數1(動作)', action)
-                else:
-                    group_data_test = self.gb.get_group_by_id(gid)
-                    if len(group_data_test) > 0:
-                        text = u'群組資料已存在。'
+                            text = u'{}變更失敗。\n錯誤: {}'.format(position, result)
                     else:
-                        line_profile = self.api_proc.profile(uid)
+                        text = error.main.line_account_data_not_found()
+                elif action.startswith('D'):
+                    action_dict = {legal_action[4]: (self.gb.set_mod1, u'群組副管 1'),
+                                   legal_action[5]: (self.gb.set_mod2, u'群組副管 2'),
+                                   legal_action[6]: (self.gb.set_mod3, u'群組副管 3')}
+                    position = action_dict[action][1]
 
-                        if line_profile is not None:
-                            if self.gb.new_data(gid, uid, pw):
-                                text = u'群組資料註冊成功。\n'
-                                text += u'群組ID: {}'.format(gid)
-                                text += u'群組管理員ID: {}'.format(uid)
-                                text += u'群組管理員名稱: {}'.format(line_profile.display_name)
-                            else:
-                                text = u'群組資料註冊失敗。'
-                        else:
-                            text = error.main.line_account_data_not_found()
+                    result = action_dict[action][0](gid, new_uid, pw, new_pw)
+                    if not isinstance(result, (str, unicode)) and result:
+
+                        text = u'{}已刪除。\n'.format(position)
+                        text += u'群組/房間ID: {}'.format(gid)
+                    else:
+                        text = u'{}刪除失敗。\n錯誤: {}'.format(position, result)
+                else:
+                    text = error.main.invalid_thing(u'指令', action)
         else:
             text = error.main.incorrect_channel()
 
@@ -585,6 +605,10 @@ class text_msg(object):
                 for lexent in lexents:
                     text += u'=={} ({})=='.format(lexent['text'], lexent['lexicalCategory'])
                     
+                    if 'derivativeOf' in lexent:
+                        derivative_arr = lexent['derivativeOf']
+                        text += u'\nDerivative: {}'.format(', '.join([derivative_data['text'] for derivative_data in derivative_arr]))
+
                     lexentarr = lexent['entries']
                     for lexentElem in lexentarr:
                         if 'senses' in lexentElem:
@@ -669,6 +693,15 @@ class text_msg(object):
 
         return text
 
+    def PIC(self, src, params):
+        last_pic_sha = self.system_data.get_last_pic_sha(line_api_proc.source_channel_id(src))
+        if last_pic_sha is not None:
+            text = u'最後圖片雜湊碼(SHA224)'
+            return [text, last_pic_sha]
+        else:
+            text = u'沒有登記到本頻道的最後圖片雜湊。如果已經有貼過圖片，則可能是因為機器人剛剛才啟動而造成。\n\n本次開機時間: {}'.format(self.system_data.boot_up)
+            return [text]
+
     def T(self, src, params):
         if params[1] is not None:
             text = params[1]
@@ -688,22 +721,6 @@ class text_msg(object):
         
         return urllib.quote(text)
 
-    @staticmethod
-    def split(text, splitter, size):
-        list = []
-  
-        if text is not None:
-            for i in range(size):
-                if splitter not in text or i == size - 1:
-                    list.append(text)
-                    break
-                list.append(text[0:text.index(splitter)])
-                text = text[text.index(splitter)+len(splitter):]
-  
-        while len(list) < size:
-            list.append(None)
-        
-        return list
 
     def split_verify(self, cmd, splitter, param_text):
         if cmd not in self.system_data.sys_cmd_dict:
@@ -711,7 +728,7 @@ class text_msg(object):
 
         max_prm = self.system_data.sys_cmd_dict[cmd].split_max
         min_prm = self.system_data.sys_cmd_dict[cmd].split_min
-        params = text_msg.split(param_text, splitter, max_prm)
+        params = split(param_text, splitter, max_prm)
 
         if min_prm > len(params) - params.count(None):
             return error.main.lack_of_thing(u'參數')
@@ -749,4 +766,22 @@ class oxford_dict(object):
     @enabled.setter
     def enabled(self, value):
         self._enabled = value
+
+
+ 
+def split(text, splitter, size):
+    list = []
+
+    if text is not None:
+        for i in range(size):
+            if splitter not in text or i == size - 1:
+                list.append(text)
+                break
+            list.append(text[0:text.index(splitter)])
+            text = text[text.index(splitter)+len(splitter):]
+
+    while len(list) < size:
+        list.append(None)
+    
+    return list
 

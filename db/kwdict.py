@@ -15,6 +15,8 @@ class kw_dict_mgr(object):
         urlparse.uses_netloc.append(scheme)
         self.url = urlparse.urlparse(db_url)
         self._set_connection()
+        self._file_hash_str_length = 56
+        self._file_hash_type = 'SHA224'
 
 
 
@@ -57,16 +59,35 @@ class kw_dict_mgr(object):
                 last_call TIMESTAMP);'
         return cmd
 
-    def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
+    def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply, kw_pic_sha=False):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
-        if keyword.replace(' ', '') == '' or reply.replace(' ', '') == '':
-            return None
+
+        is_illegal_reply_attachment = lambda reply_obj: {'is_legal': reply_obj['attachment'] is None or
+                                                                     (reply_obj['attachment'] is not None 
+                                                                     and 
+                                                                     len(reply_obj['attachment']) <= 50), 
+                                                         'test_reply_object': reply_obj}
+        illegal_reply_object_test = is_illegal_reply_attachment(kw_dict_mgr.split_reply(reply, is_pic_reply))
+
+        if keyword.replace(' ', '') == '':
+            return error.main.invalid_thing_with_correct_format(u'關鍵字', u'字數大於0，但小於500字(中文250字)的字串', keyword)
+        elif reply.replace(' ', '') == '':
+            return error.main.invalid_thing_with_correct_format(u'回覆', u'字數大於0，但小於500字(中文250字)的字串', reply)
+        elif is_pic_reply and not illegal_reply_object_test['is_legal']:
+            return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', 
+                                                                illegal_reply_object_test['test_reply_object']['attachment'])
+        elif kw_pic_sha and len(keyword) != self._file_hash_str_length:
+            raise ValueError('Length of the keyword is invalid (Not {}), use {} encryption to generate the checksum of the file.'.format(self._file_hash_str_length, 
+                                                                                                                                         self._file_hash_type))
+
+
         else:
-            cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply) \
-                    VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s) \
+            cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply, kw_pic_sha) \
+                    VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s, %(kw_pic_sha)s) \
                     RETURNING *;'
-            cmd_dict = {'kw': keyword, 'rep': reply, 'cid': creator_id, 'sys': is_top, 'stk_kw': is_sticker_kw, 'pic_rep': is_pic_reply}
+            cmd_dict = {'kw': keyword, 'rep': reply, 'cid': creator_id, 'sys': is_top, 'stk_kw': is_sticker_kw, 
+                        'pic_rep': is_pic_reply, 'kw_pic_sha': kw_pic_sha}
             cmd_override = u'UPDATE keyword_dict SET override = TRUE, deletor = %(dt)s, disabled_time = NOW() AT TIME ZONE \'CCT\' \
                              WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND admin = %(adm)s'
             cmd_override_dict = {'kw': keyword, 'dt': creator_id, 'adm': is_top}
@@ -75,13 +96,14 @@ class kw_dict_mgr(object):
 
             return result
 
-    def get_reply(self, keyword, is_sticker_kw):
+    def get_reply(self, keyword, is_sticker_kw, kw_pic_sha=False):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         cmd = u'SELECT * FROM keyword_dict \
-                WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND is_sticker_kw = %(stk_kw)s\
+                WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND is_sticker_kw = %(stk_kw)s AND kw_pic_sha = %(kw_pic_sha)s\
                 ORDER BY admin DESC, id DESC;'
-        db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw}
+        db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw,
+                   'kw_pic_sha': kw_pic_sha}
         result = self.sql_cmd(cmd, db_dict)
         if len(result) > 0:
             cmd_update = u'UPDATE keyword_dict SET used_count = used_count + 1, last_call = NOW() AT TIME ZONE \'CCT\' WHERE id = %(id)s AND (EXTRACT(EPOCH FROM (NOW() AT TIME ZONE \'CCT\' - last_call)) > 5 OR last_call IS NULL)'
@@ -232,9 +254,18 @@ class kw_dict_mgr(object):
             ret['limited'] = error.main.no_result()
         else:
             for index, row in enumerate(data, start=1):
+                kw = row[int(kwdict_col.keyword)].decode('utf-8')
+
+                if row[int(kwdict_col.is_sticker_kw)]:
+                    basic_data = u'(貼圖ID {})'.format(kw)
+                elif row[int(kwdict_col.kw_pic_sha)]:
+                    basic_data = u'(圖片雜湊 {})'.format(kw[0:7])
+                else:
+                    basic_data = kw
+
                 text = u'ID: {} - {} {}{}{}\n'.format(
                     row[int(kwdict_col.id)],
-                    u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'),
+                    basic_data,
                     u'[蓋]' if row[int(kwdict_col.override)] else u'',
                     u'[頂]' if row[int(kwdict_col.admin)] else u'',
                     u'[刪]' if row[int(kwdict_col.deleted)] else u'')
@@ -260,14 +291,29 @@ class kw_dict_mgr(object):
 
     @staticmethod
     def entry_basic_info(entry_row):
+        reply_splitter = ' '
         text = u'ID: {}\n'.format(entry_row[int(kwdict_col.id)])
-        kw = entry_row[int(kwdict_col.keyword)].decode('utf8')
-        if not entry_row[int(kwdict_col.is_sticker_kw)]:
-            text += u'關鍵字: {}\n'.format(kw)
+
+        kw = entry_row[int(kwdict_col.keyword)].decode('utf-8')
+        reply_iter = kw_dict_mgr.split_reply(entry_row[int(kwdict_col.reply)].decode('utf-8'), entry_row[int(kwdict_col.is_pic_reply)])
+        reply_iter_attachment = reply_iter['attachment']
+        is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
+
+        text += u'關鍵字: '
+
+        if entry_row[int(kwdict_col.is_sticker_kw)]:
+            text += u'(貼圖ID: {})\n'.format(kw)
+        elif entry_row[int(kwdict_col.kw_pic_sha)]:
+            text += u'(圖片雜湊 {})\n'.format(kw)
         else:
-            text += u'關鍵字: (貼圖ID: {})\n'.format(kw)
-        text += u'回覆{}: {}'.format(u'圖片URL' if entry_row[int(kwdict_col.is_pic_reply)] else u'文字',
-                                     entry_row[int(kwdict_col.reply)].decode('utf-8'))
+            text += u'{}\n'.format(kw)
+
+        text += u'回覆{}: {}'.format(u'圖片URL' if is_pic_reply else u'文字',
+                                     reply_iter['main'])
+
+        if reply_iter_attachment is not None and is_pic_reply:
+            text += u'\n回覆文字: {}'.format(reply_iter_attachment)
+
         return text
 
     @staticmethod
@@ -317,7 +363,7 @@ class kw_dict_mgr(object):
                 if not limited:
                     ret['limited'] += text
 
-                    if index >= limit:
+                    if index > limit:
                         ret['limited'] += separator
                         ret['limited'] += u'還有{}筆資料沒有顯示。'.format(count - limit)
                         limited = True
@@ -362,6 +408,23 @@ class kw_dict_mgr(object):
     def sticker_id(sticker_url):
         return sticker_url.replace('https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/', '').replace('/android/sticker.png', '')
 
+    @staticmethod
+    def split_reply(reply_text_in_db, is_pic_reply=True):
+        """
+        return:
+            ['main'] = main part of reply
+            ['attachment'] = attachment text
+        """
+        from msg_handler.text_msg import split
+
+        if is_pic_reply:
+            reply_splitter = '  '
+            split_iter = split(reply_text_in_db, reply_splitter, 2)
+        else:
+            split_iter = [reply_text_in_db, None]
+
+        return {'main': split_iter[0], 'attachment': split_iter[1]}
+
 
 
     def _close_connection(self):
@@ -394,8 +457,9 @@ class kwdict_col(Enum):
     created_time = 11
     disabled_time = 12
     last_call = 13
+    kw_pic_sha = 14
 
-    used_rank = 14
+    used_rank = 15
 
     def __int__(self):
         return self.value

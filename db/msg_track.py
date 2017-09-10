@@ -53,7 +53,8 @@ class message_tracker(object):
                 stk_msg_trig INTEGER NOT NULL DEFAULT 0, \
                 text_rep INTEGER NOT NULL DEFAULT 0, \
                 stk_rep INTEGER NOT NULL DEFAULT 0, \
-                last_msg_recv TIMESTAMP NOT NULL DEFAULT NOW() AT TIME ZONE \'CCT\');'
+                last_msg_recv TIMESTAMP NOT NULL DEFAULT NOW() AT TIME ZONE \'CCT\' \
+                pic_msg INTEGER NOT NULL DEFAULT 0);'
         return cmd
 
     def log_message_activity(self, cid, type_of_event):
@@ -103,19 +104,21 @@ class message_tracker(object):
     def count_sum(self):
         results = defaultdict(int)
 
-        cmd = u'SELECT MIN(last_msg_recv), SUM(text_msg), SUM(text_msg_trig), SUM(stk_msg), SUM(stk_msg_trig), SUM(text_rep), SUM(stk_rep) FROM msg_track'
+        cmd = u'SELECT MAX(last_msg_recv), SUM(text_msg), SUM(text_msg_trig), SUM(stk_msg), SUM(stk_msg_trig), SUM(text_rep), SUM(stk_rep), MAX(last_msg_recv), SUM(pic_msg) FROM msg_track'
         sql_result = self.sql_cmd_only(cmd)
         sql_result = sql_result[0]
         results[msg_event_type.recv_txt] = sql_result[int(msg_track_col.text_msg)]
         results[msg_event_type.recv_txt_repl] = sql_result[int(msg_track_col.text_msg_trig)]
         results[msg_event_type.recv_stk] = sql_result[int(msg_track_col.stk_msg)]
         results[msg_event_type.recv_stk_repl] = sql_result[int(msg_track_col.stk_msg_trig)]
+        results[msg_event_type.recv_pic] = sql_result[int(msg_track_col.pic_msg)]
         results[msg_event_type.send_txt] = sql_result[int(msg_track_col.text_rep)]
         results[msg_event_type.send_stk] = sql_result[int(msg_track_col.stk_rep)]
         return results
 
     def order_by_recorded_msg_count(self, limit=1000):
-        cmd = u'SELECT *, RANK() OVER (ORDER BY SUM(text_msg) + SUM(text_msg_trig) + SUM(stk_msg) + SUM(stk_msg_trig) DESC) AS total_msg FROM msg_track GROUP BY cid ORDER BY total_msg ASC LIMIT %(limit)s;'
+        cmd = u'SELECT *, RANK() OVER (ORDER BY SUM(text_msg) + SUM(text_msg_trig) + SUM(stk_msg) + \
+                                                SUM(stk_msg_trig) + SUM(pic_msg) DESC) AS total_msg FROM msg_track GROUP BY cid ORDER BY total_msg ASC LIMIT %(limit)s;'
         cmd_dict = {'limit': limit}
         
         result = self.sql_cmd(cmd, cmd_dict)
@@ -141,9 +144,13 @@ class message_tracker(object):
             activation_status = u'啟用回覆'
 
         text = u'群組/房間ID: {} 【{}】'.format(gid, activation_status)
-        text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg)], data[int(msg_track_col.stk_msg)])
-        text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg_trig)], data[int(msg_track_col.stk_msg_trig)])
-        text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_rep)], data[int(msg_track_col.stk_rep)])
+        text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息 | {}則圖片訊息'.format(data[int(msg_track_col.text_msg)], 
+                                                                                        data[int(msg_track_col.stk_msg)], 
+                                                                                        data[int(msg_track_col.pic_msg)])
+        text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg_trig)], 
+                                                                         data[int(msg_track_col.stk_msg_trig)])
+        text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_rep)], 
+                                                            data[int(msg_track_col.stk_rep)])
 
         return text
 
@@ -191,6 +198,7 @@ class msg_track_col(Enum):
     text_rep = 5, 'text_rep'
     stk_rep = 6, 'stk_rep'
     last_msg_recv = 7, 'last_msg_recv'
+    pic_msg = 8, 'pic_msg'
 
     def __new__(cls, value, col_name):
         member = object.__new__(cls)
@@ -206,6 +214,7 @@ class msg_event_type(Enum):
     recv_txt_repl = 2
     recv_stk = 3
     recv_stk_repl = 4
+    recv_pic = 8
     send_txt = 5
     send_stk = 6
 

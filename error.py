@@ -16,7 +16,10 @@ class error(object):
             return u'沒有內容。.'
 
     class main(object):
-        
+        @staticmethod
+        def incorrect_password_or_insufficient_permission():
+            return u'密碼錯誤或權限不足。'
+
         @staticmethod
         def invalid_thing(name_of_thing, thing):
             return u'不合法的{}: {}。請查看使用說明書( {} )。'.format(name_of_thing, thing, error.user_manual_url)
@@ -68,7 +71,7 @@ class error(object):
 
         @staticmethod
         def line_account_data_not_found():
-            return u'找不到LINE帳號資料。'
+            return u'無對應LINE帳號資料。'
 
         @staticmethod
         def text_length_too_long(url):

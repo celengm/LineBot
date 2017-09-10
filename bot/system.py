@@ -8,6 +8,8 @@ import operator
 import traceback
 from math import *
 
+from linebot.models import SourceGroup, SourceRoom, SourceUser
+
 class _command(object):
     def __init__(self, min_split=2, max_split=2, non_user_permission_required=False):
         self._split_max = max_split
@@ -58,6 +60,7 @@ _sys_cmd_dict = {'S': _command(1, 1, True),
                 'B': _command(0, 0, False), 
                 'RD': _command(1, 2, False),
                 'STK': _command(0, 0, False),
+                'PIC': _command(0, 0, False),
                 'T': _command(1, 1, False)}
 
 _game_cmd_dict = {'RPS': _command(0, 4, False)}
@@ -72,6 +75,7 @@ class system_data(object):
         self._intercept = True
         self._string_calc_debug = False
         self._last_sticker = defaultdict(str)
+        self._last_pic_sha = defaultdict(str)
         self._sys_cmd_dict = _sys_cmd_dict
         self._game_cmd_dict = _game_cmd_dict
         self._helper_cmd_dict = _helper_cmd_dict
@@ -82,6 +86,12 @@ class system_data(object):
 
     def get_last_sticker(self, cid):
         return self._last_sticker.get(cid)
+
+    def set_last_pic_sha(self, cid, sha):
+        self._last_pic_sha[cid] = str(sha)
+
+    def get_last_pic_sha(self, cid):
+        return self._last_pic_sha.get(cid)
 
     @property
     def silence(self):
@@ -163,12 +173,42 @@ class line_api_proc(object):
     def __init__(self, line_api):
         self._line_api = line_api
 
-    def profile(self, uid):
+    def profile(self, uid, src=None):
         try:
-            return self._line_api.get_profile(uid)
+            if src is None:
+                return self._line_api.get_profile(uid)
+            else:
+                if isinstance(src, SourceUser):
+                    return self.profile(uid, None)
+                elif isinstance(src, SourceGroup):
+                    return self.profile_group(line_api_proc.source_channel_id(src), uid)
+                elif isinstance(src, SourceRoom):
+                    return self.profile_room(line_api_proc.source_channel_id(src), uid)
+                else:
+                    raise ValueError('Instance not defined.')
         except exceptions.LineBotApiError as ex:
             if ex.status_code == 404:
                 return None
+
+    def profile_group(self, gid, uid):
+        try:
+            return self._line_api.get_group_member_profile(gid, uid)
+        except exceptions.LineBotApiError as ex:
+            if ex.status_code == 404:
+                return None
+
+    def profile_room(self, rid, uid):
+        try:
+            return self._line_api.get_room_member_profile(rid, uid)
+        except exceptions.LineBotApiError as ex:
+            if ex.status_code == 404:
+                return None
+
+    def get_content(self, msg_id):
+        return self._line_api.get_message_content(msg_id)
+
+    def reply_message(self, reply_token, msgs):
+        self._line_api.reply_message(reply_token, msgs)
 
     @staticmethod
     def source_channel_id(event_source):
@@ -185,6 +225,37 @@ class line_api_proc(object):
     @staticmethod
     def is_valid_room_group_id(uid):
         return uid is not None and len(uid) == 33 and (uid.startswith('C') or uid.startswith('R'))
+
+class imgur_proc(object):
+    def __init__(self, imgur_api):
+        self._imgur_api = imgur_api
+
+    def upload(self, path):
+        return self._imgur_api.upload_from_path(path)['link']
+
+    @property
+    def user_limit(self):
+        return self._imgur_api.credits['UserLimit']
+
+    @property
+    def user_remaining(self):
+        return self._imgur_api.credits['UserRemaining']
+
+    @property
+    def user_reset(self):
+        """UNIX EPOCH @UTC"""
+        return self._imgur_api.credits['UserReset']
+
+    @property
+    def client_limit(self):
+        return self._imgur_api.credits['ClientLimit']
+
+    @property
+    def client_remaining(self):
+        return self._imgur_api.credits['ClientRemaining']
+
+
+
 
 def string_can_be_int(s):
     try:
