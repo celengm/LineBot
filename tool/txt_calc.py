@@ -20,7 +20,6 @@ class text_calculator(object):
 
             if isinstance(result, (float, int, long)):
                 print result
-                print text_calculator.remove_non_digit(text)
                 if len(text_calculator.remove_non_digit(text)) < 10:  
                     if text != str(result):
                         return (result, end_time - start_time)

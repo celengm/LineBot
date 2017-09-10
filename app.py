@@ -422,11 +422,12 @@ def handle_text_message(event):
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
-                    calc_result_str = str(calc_result[0])
+                    result = calc_result[0]
                     calc_result_output = u'算式: {}\n計算結果: {}\n計算花費{}秒'.format(
-                        '\n{}'.format(text) if '\n' in text else text, calc_result_str,
+                        '\n{}'.format(text) if '\n' in text else text, 
+                        result,
                         calc_result[1])
-                    if len(calc_result_str) <= 100:
+                    if result // 10**99 < 10:
                         text = calc_result_output
                     else:
                         text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(calc_result_output))
