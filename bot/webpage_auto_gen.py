@@ -17,6 +17,7 @@ class webpage(object):
     def __init__(self, flask_app):
         self._flask_app = flask_app
         self._app_root_url = self._flask_app.config.get('SERVER_NAME')
+        print self._app_root_url
         self._error_route = 'Error'
         self._query_route = 'FullQuery'
         self._info_route = 'FullInfo'
