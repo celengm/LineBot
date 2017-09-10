@@ -4,8 +4,6 @@ from error import error
 from cgi import escape
 from collections import defaultdict
 
-import traceback
-
 import time
 from datetime import datetime, timedelta
 from flask import Flask, url_for, render_template
@@ -26,13 +24,13 @@ class webpage(object):
                               self._text_route: defaultdict(unicode)}
 
 
-    def rec_error(self, err_sum, channel_id):
+    def rec_error(self, err_sum, decoded_traceback, channel_id):
         with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
             err_detail += u'頻道ID: {}'.format(channel_id)
             err_detail += u'\n\n'
-            err_detail += traceback.format_exc().decode('utf-8')
+            err_detail += decoded_traceback
 
             print err_detail.encode('utf-8')
             self._page_content[self._error_route][timestamp] = err_detail

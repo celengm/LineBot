@@ -435,14 +435,14 @@ def handle_text_message(event):
         for err in ex.error.details:
             text += u'錯誤內容: {}\n錯誤訊息: {}\n'.format(err.property, err.message.decode("utf-8"))
 
-        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)
     except Exception as exc:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         exc_type, exc_obj, exc_tb = sys.exc_info()
         text += u'錯誤種類: {}\n\n第{}行 - {}'.format(exc_type, exc_tb.tb_lineno, exc.message.decode("utf-8"))
         
-        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)
     return 
 
@@ -523,14 +523,14 @@ def handle_image_message(event):
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
 
-        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)
     except Exception as exc:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         exc_type, exc_obj, exc_tb = sys.exc_info()
         text += u'錯誤種類: {}\n\n第{}行 - {}'.format(exc_type, exc_tb.tb_lineno, exc.message.decode("utf-8"))
         
-        error_msg = webpage_generator.rec_error(text, line_api_proc.source_channel_id(src))
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)
 
 
