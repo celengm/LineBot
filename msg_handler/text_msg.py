@@ -598,6 +598,10 @@ class text_msg(object):
                 for lexent in lexents:
                     text += u'=={} ({})=='.format(lexent['text'], lexent['lexicalCategory'])
                     
+                    if 'derivativeOf' in lexent:
+                        derivative = lexent['derivativeOf']['text']
+                        text += u'The derivative of this word is \'{}\'.'.format(derivative)
+
                     lexentarr = lexent['entries']
                     for lexentElem in lexentarr:
                         if 'senses' in lexentElem:
