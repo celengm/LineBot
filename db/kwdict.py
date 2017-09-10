@@ -93,13 +93,14 @@ class kw_dict_mgr(object):
 
             return result
 
-    def get_reply(self, keyword, is_sticker_kw):
+    def get_reply(self, keyword, is_sticker_kw, kw_pic_sha=False):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         cmd = u'SELECT * FROM keyword_dict \
-                WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND is_sticker_kw = %(stk_kw)s\
+                WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND is_sticker_kw = %(stk_kw)s AND kw_pic_sha = %(kw_pic_sha)s\
                 ORDER BY admin DESC, id DESC;'
-        db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw}
+        db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw,
+                   'kw_pic_sha': kw_pic_sha}
         result = self.sql_cmd(cmd, db_dict)
         if len(result) > 0:
             cmd_update = u'UPDATE keyword_dict SET used_count = used_count + 1, last_call = NOW() AT TIME ZONE \'CCT\' WHERE id = %(id)s AND (EXTRACT(EPOCH FROM (NOW() AT TIME ZONE \'CCT\' - last_call)) > 5 OR last_call IS NULL)'
@@ -250,9 +251,18 @@ class kw_dict_mgr(object):
             ret['limited'] = error.main.no_result()
         else:
             for index, row in enumerate(data, start=1):
+                kw = row[int(kwdict_col.keyword)].decode('utf-8')
+
+                if row[int(kwdict_col.is_sticker_kw)]:
+                    basic_data = u'(貼圖ID {})'.format(kw)
+                elif row[int(kwdict_col.kw_pic_sha)]:
+                    basic_data = u'(圖片 {})'.format(kw[0:7])
+                else:
+                    basic_data = kw
+
                 text = u'ID: {} - {} {}{}{}\n'.format(
                     row[int(kwdict_col.id)],
-                    u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'),
+                    basic_data,
                     u'[蓋]' if row[int(kwdict_col.override)] else u'',
                     u'[頂]' if row[int(kwdict_col.admin)] else u'',
                     u'[刪]' if row[int(kwdict_col.deleted)] else u'')
@@ -286,10 +296,14 @@ class kw_dict_mgr(object):
         reply_iter_attachment = reply_iter['attachment']
         is_pic_reply = entry_row[int(kwdict_col.is_pic_reply)]
 
-        if not entry_row[int(kwdict_col.is_sticker_kw)]:
-            text += u'關鍵字: {}\n'.format(kw)
+        text += u'關鍵字: '
+
+        if entry_row[int(kwdict_col.is_sticker_kw)]:
+            text += u'(貼圖ID: {})\n'.format(kw)
+        elif entry_row[int(kwdict_col.kw_pic_sha)]:
+            text += u'(圖片 {})\n'.format(kw[0:7])
         else:
-            text += u'關鍵字: (貼圖ID: {})\n'.format(kw)
+            text += u'{}\n'.format(kw)
 
         text += u'回覆{}: {}'.format(u'圖片URL' if is_pic_reply else u'文字',
                                      reply_iter['main'])

@@ -79,13 +79,16 @@ class text_msg(object):
                 action_rep = params[3]
                 rep = params[4]
                 rep_obj = kw_dict_mgr.split_reply(rep)
+
+                is_stk_int = system.string_can_be_int(kw)
+                is_kw_pic_hash = len(kw) == 56
                  
                 if action_kw != 'STK':
                     results = None
                     text = error.main.incorrect_param(u'參數1', u'STK')
-                elif not system.string_can_be_int(kw):
+                elif not is_stk_int or not is_kw_pic_hash:
                     results = None
-                    text = error.main.incorrect_param(u'參數2', u'整數數字')
+                    text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
                 elif action_rep != 'PIC':
                     results = None
                     text =  error.main.incorrect_param(u'參數3', u'PIC')
@@ -99,11 +102,13 @@ class text_msg(object):
                         url_val_result = url_val_result = True if validators.url(rep_pic_url) and urlparse(rep_pic_url).scheme == 'https' else False
 
                     if type(url_val_result) is bool and url_val_result:
-                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, True, True)
+                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, is_stk_int, True, is_kw_pic_hash)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址。')
+                        text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址')
+
             elif params[3] is not None:
+
                 rep = params[3]
                 rep_obj = kw_dict_mgr.split_reply(rep)
 
@@ -121,15 +126,18 @@ class text_msg(object):
                         results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, False, True)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數3', u'HTTPS協定，並且是合法的網址。')
+                        text = error.main.incorrect_param(u'參數3', u'HTTPS協定，並且是合法的網址')
                 elif params[1] == 'STK':
                     kw = params[2]
 
-                    if system.string_can_be_int(kw):
-                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, True, False)
+                    is_stk_int = system.string_can_be_int(kw)
+                    is_kw_pic_hash = len(kw) == 56
+
+                    if is_stk_int and is_kw_pic_hash:
+                        results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, is_stk_int, False, is_kw_pic_hash)
                     else:
                         results = None
-                        text = error.main.incorrect_param(u'參數2', u'整數數字')
+                        text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
                 else:
                     text = error.main.unable_to_determine()
                     results = None

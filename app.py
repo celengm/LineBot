@@ -119,7 +119,7 @@ command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track,
                                         oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, 
                                         game_data, webpage_generator, imgur_api)
 game_executor = msg_handler.game_msg(game_data, line_api)
-img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path)
+img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path, kwd)
 
 # function for create tmp dir for download content
 def make_tmp_dir():
@@ -489,16 +489,17 @@ def handle_image_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_pic)
 
     src = event.source
-    
-    if not isinstance(src, SourceUser):
-        return
-
     token = event.reply_token
     msg = event.message
 
     try:
-        text = img_executor.image_handle(msg)
-        api_reply(token, TextSendMessage(text=text), src)
+        if isinstance(src, SourceUser):
+            text = img_executor.image_handle_user(msg)
+            api_reply(token, TextSendMessage(text=text), src)
+            return
+        else:
+            image_sha = img_executor.image_handle_group(msg)
+            auto_reply_system(token, image_sha, False, True)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
@@ -648,13 +649,13 @@ def intercept_text(event):
     print '=================================================================='
 
 
-def auto_reply_system(token, keyword, is_sticker_kw, src):
+def auto_reply_system(token, keyword, is_sticker_kw, src, is_kw_pic_sha=False):
     cid = line_api_proc.source_channel_id(src)
 
     if gb.is_group_set_to_silence(cid):
         return False
 
-    res = kwd.get_reply(keyword, is_sticker_kw)
+    res = kwd.get_reply(keyword, is_sticker_kw, is_kw_pic_sha)
     if res is not None:
         msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_stk_repl if is_sticker_kw else msg_event_type.recv_txt_repl)
         result = res[0]
