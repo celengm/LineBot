@@ -38,6 +38,9 @@
     <Compile Include="bot\system.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="msg_handler\img_msg.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="msg_handler\text_msg.py" />
     <Compile Include="bot\webpage_auto_gen.py">
       <SubType>Code</SubType>

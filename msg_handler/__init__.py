@@ -5,3 +5,7 @@ from .text_msg import (
 from .game_msg import (
     game_msg
 )
+
+from .img_msg import (
+    img_msg
+)

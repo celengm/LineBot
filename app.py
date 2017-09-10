@@ -90,9 +90,8 @@ if channel_secret is None:
 if channel_access_token is None:
     print('Specify LINE_CHANNEL_ACCESS_TOKEN environment variable.')
     sys.exit(1)
-api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
-line_api = line_api_proc(api)
+line_api = line_api_proc(LineBotApi(channel_access_token))
 
 # Imgur APi instantiation
 imgur_client_id = os.getenv('IMGUR_CLIENT_ID', None)
@@ -103,8 +102,7 @@ if imgur_client_id is None:
 if imgur_client_secret is None:
     print('Specify IMGUR_CLIENT_SECRET environment variable.')
     sys.exit(1)
-imgur = ImgurClient(imgur_client_id, imgur_client_secret)
-imgur_api = imgur_proc(imgur)
+imgur_api = imgur_proc(ImgurClient(imgur_client_id, imgur_client_secret))
 
 
 # Oxford Dictionary Environment initialization
@@ -121,6 +119,7 @@ command_executor = msg_handler.text_msg(line_api, kwd, gb, msg_track,
                                         oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, 
                                         game_data, webpage_generator, imgur_api)
 game_executor = msg_handler.game_msg(game_data, line_api)
+img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path)
 
 # function for create tmp dir for download content
 def make_tmp_dir():
@@ -221,7 +220,7 @@ def handle_text_message(event):
 
     if text == '561563ed706e6f696abbe050ad79cf334b9262da6f83bc1dcf7328f2':
         sys_data.intercept = not sys_data.intercept
-        api.reply_message(token, TextSendMessage(text='Bot {}.'.format('start to intercept messages' if sys_data.intercept else 'stop intercepting messages')))
+        api_reply(token, TextSendMessage(text='Bot {}.'.format('start to intercept messages' if sys_data.intercept else 'stop intercepting messages')), src)
         return
     elif sys_data.intercept:
         intercept_text(event)
@@ -232,7 +231,7 @@ def handle_text_message(event):
 
     if text == administrator:
         sys_data.silence = not sys_data.silence
-        api.reply_message(token, TextSendMessage(text='Bot set to {}.'.format('Silent' if sys_data.silence else 'Active')))
+        api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Silent' if sys_data.silence else 'Active')), src)
         return
     elif sys_data.silence:
         return
@@ -486,7 +485,7 @@ def handle_sticker_message(event):
 
 
 @handler.add(MessageEvent, message=ImageMessage)
-def handle_content_message(event):
+def handle_image_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_pic)
 
     src = event.source
@@ -498,31 +497,8 @@ def handle_content_message(event):
     msg = event.message
 
     try:
-        message_content = line_api.get_content(msg.id)
-
-        with tempfile.NamedTemporaryFile(dir=static_tmp_path, delete=False) as tf:
-            for chunk in message_content.iter_content():
-                tf.write(chunk)
-            tempfile_path = tf.name
-
-            dest_path = tempfile_path + '.jpg'
-            dest_name = os.path.basename(dest_path)
-            os.rename(tempfile_path, dest_path)
-
-            # TODO: ERROR DEBUG, IMGUR API SUPPORT CONTACTED. ({u'type': u'Exception_Logged', u'exception': {}, u'message': u'Failed stripping metadata', u'code': 1001})
-            # imgur_url = imgur_api.upload(dest_path)
-
-            import binascii
-
-            with open(dest_path, 'rb') as f:
-                hexdata = binascii.hexlify(f.read())
-            
-            hexlist = map(''.join, zip(*[iter(hexdata)]*2))
-
-        os.remove(dest_path)
-
-        # api_reply(token, TextSendMessage(text=u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)), src)
-        api_reply(token, TextSendMessage(text=' '.join(hexlist)), src)
+        result = img_executor.image_handle(msg)
+        api_reply(token, result, src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
@@ -561,7 +537,7 @@ def handle_location_message(event):
 
 # Incomplete
 @handler.add(MessageEvent, message=(VideoMessage, AudioMessage))
-def handle_content_message(event):
+def handle_media_message(event):
     msg_track.log_message_activity(line_api_proc.source_channel_id(event.source), msg_event_type.recv_txt)
     return
 
@@ -574,7 +550,7 @@ def handle_content_message(event):
     else:
         return
 
-    message_content = api.get_message_content(event.message.id)
+    message_content = line_api.get_content(event.message.id)
     with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
         for chunk in message_content.iter_content():
             tf.write(chunk)
@@ -647,11 +623,11 @@ def api_reply(reply_token, msgs, src):
                 msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.send_txt)
 
                 if len(msg.text) > 2000:
-                    api.reply_message(reply_token, 
-                                      TextSendMessage(text=error.main.text_length_too_long(webpage_generator.rec_text(msgs))))
+                    line_api.reply_message(reply_token, 
+                                           TextSendMessage(text=error.main.text_length_too_long(webpage_generator.rec_text(msgs))))
                     return
 
-        api.reply_message(reply_token, msgs)
+        line_api.reply_message(reply_token, msgs)
     else:
         print '=================================================================='
         print 'Bot set to silence. Expected message to reply will display below: '

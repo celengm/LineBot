@@ -15,6 +15,8 @@ class kw_dict_mgr(object):
         urlparse.uses_netloc.append(scheme)
         self.url = urlparse.urlparse(db_url)
         self._set_connection()
+        self._file_hash_str_length = 56
+        self._file_hash_type = 'SHA224'
 
 
 
@@ -57,7 +59,7 @@ class kw_dict_mgr(object):
                 last_call TIMESTAMP);'
         return cmd
 
-    def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply):
+    def insert_keyword(self, keyword, reply, creator_id, is_top, is_sticker_kw, is_pic_reply, kw_pic_sha=False):
         keyword = keyword.replace('\\', '\\\\').replace(r'\\n', '\n')
         reply = reply.replace('\\', '\\\\').replace(r'\\n', '\n')
 
@@ -72,11 +74,17 @@ class kw_dict_mgr(object):
         elif is_pic_reply and not illegal_reply_object_test['is_legal']:
             return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', 
                                                                 illegal_reply_object_test['test_reply_object']['attachment'])
+        elif kw_pic_sha and len(keyword) != self._file_hash_str_length:
+            raise ValueError('Length of the keyword is invalid (Not {}), use {} encryption to generate the checksum of the file.'.format(self._file_hash_str_length, 
+                                                                                                                                         self._file_hash_type))
+
+
         else:
-            cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply) \
-                    VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s) \
+            cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply, kw_pic_sha) \
+                    VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s, %(kw_pic_sha)s) \
                     RETURNING *;'
-            cmd_dict = {'kw': keyword, 'rep': reply, 'cid': creator_id, 'sys': is_top, 'stk_kw': is_sticker_kw, 'pic_rep': is_pic_reply}
+            cmd_dict = {'kw': keyword, 'rep': reply, 'cid': creator_id, 'sys': is_top, 'stk_kw': is_sticker_kw, 
+                        'pic_rep': is_pic_reply, 'kw_pic_sha': kw_pic_sha}
             cmd_override = u'UPDATE keyword_dict SET override = TRUE, deletor = %(dt)s, disabled_time = NOW() AT TIME ZONE \'CCT\' \
                              WHERE keyword = %(kw)s AND deleted = FALSE AND override = FALSE AND admin = %(adm)s'
             cmd_override_dict = {'kw': keyword, 'dt': creator_id, 'adm': is_top}
@@ -432,8 +440,9 @@ class kwdict_col(Enum):
     created_time = 11
     disabled_time = 12
     last_call = 13
+    kw_pic_sha = 14
 
-    used_rank = 14
+    used_rank = 15
 
     def __int__(self):
         return self.value
