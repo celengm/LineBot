@@ -422,11 +422,13 @@ def handle_text_message(event):
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
+                    # will string.format cause delay when format param is string?
+
                     result = calc_result[0]
-                    calc_result_output = u'算式: {}\n計算結果: {}\n計算花費{}秒'.format(
+                    calc_result_output = u'算式: {}\n計算花費: {}秒\n計算結果: {}'.format(
                         '\n{}'.format(text) if '\n' in text else text, 
-                        result,
-                        calc_result[1])
+                        calc_result[1],
+                        result)
                     if result // 10**99 < 10:
                         text = calc_result_output
                     else:
