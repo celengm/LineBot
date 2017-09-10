@@ -17,12 +17,7 @@ from cgi import escape
 from datetime import datetime
 from error import error
 from flask import Flask, request, url_for
-
-# Multi Thread (Back ground working)
-from rq import Queue
-from worker import conn
-
-q = Queue(connection=conn)
+import thread
 
 # import for Oxford Dictionary
 import httplib
@@ -148,12 +143,13 @@ def callback():
     # handle webhook body
     try:
         # Single Thread
-        handler.handle(body, signature)
+        #handler.handle(body, signature)
 
         # Multi Thread
-        # HandleThread = threading.Thread(target=handler.handle, args=(body,
-        # signature))
-        # HandleThread.start()
+        #import threading
+        #HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        #HandleThread.start()
+        thread.start_new_thread(handler.handle, (body, signature))
     except exceptions.InvalidSignatureError:
         abort(400)
 
@@ -414,8 +410,7 @@ def handle_text_message(event):
                 api_reply(token, TextSendMessage(text=text), src)
                 return
             else:
-                calc_result = q.enqueue(txt_calc.text_calculator.calc, (text, sys_data.calc_debug))
-                # calc_result = txt_calc.text_calculator.calc(text, sys_data.calc_debug)
+                calc_result = txt_calc.text_calculator.calc(text, sys_data.calc_debug)
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
                     text = u'算式: {}\n\n計算結果: {}'.format('\n{}'.format(text) if '\n' in text else text, calc_result)
