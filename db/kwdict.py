@@ -10,8 +10,8 @@ from .db_base import db_base_obj
 
 class kw_dict_mgr(db_base_obj):
 
-    def __init__(self, scheme, db_url):
-        super(kw_dict_mgr, self).__init__(scheme, db_url)
+    def __init__(self, db_query_mgr):
+        super(kw_dict_mgr, self).__init__(db_query_mgr)
         self._file_hash_str_length = 56
         self._file_hash_type = 'SHA224'
 
@@ -101,7 +101,7 @@ class kw_dict_mgr(db_base_obj):
         cmd = u'SELECT * FROM keyword_dict WHERE keyword = %(kw)s AND is_sticker_kw = TRUE ORDER BY id DESC;'
         cmd_dict = {'kw': sticker_id}
         result = self.sql_cmd(cmd, cmd_dict)
-        return result
+        return result if len(result) > 0 else None
 
     def search_keyword_index(self, startIndex, endIndex):
         cmd = u'SELECT * FROM keyword_dict WHERE id >= %(si)s AND id <= %(ei)s ORDER BY id DESC;'

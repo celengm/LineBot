@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # import custom module
-from bot import webpage_auto_gen, game_objects
+from bot import webpage_auto_gen, game_objects, db_query_manager
 from bot.system import line_api_proc, string_can_be_int, system_data, imgur_proc
 
 import msg_handler
@@ -52,9 +52,10 @@ from imgurpython import ImgurClient
 from imgurpython.helpers.error import ImgurClientError
 
 # Databases initialization
-kwd = kw_dict_mgr("postgres", os.environ["DATABASE_URL"])
-gb = group_ban("postgres", os.environ["DATABASE_URL"])
-msg_track = message_tracker("postgres", os.environ["DATABASE_URL"])
+db_query = db_query_manager("postgres", os.environ["DATABASE_URL"])
+kwd = kw_dict_mgr(db_query)
+gb = group_ban(db_query)
+msg_track = message_tracker(db_query)
 
 # Main initialization
 app = Flask(__name__)

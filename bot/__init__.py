@@ -9,3 +9,7 @@ from .webpage_auto_gen import (
 from .game_object_holder import (
     game_objects
 )
+
+from .sql import (
+    db_query_manager
+)
