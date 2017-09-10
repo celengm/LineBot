@@ -191,7 +191,7 @@ class line_api_proc(object):
 
     def profile_room(self, rid, uid):
         try:
-            return self._line_api.get_room_member_profile(gid, uid)
+            return self._line_api.get_room_member_profile(rid, uid)
         except exceptions.LineBotApiError as ex:
             if ex.status_code == 404:
                 return None

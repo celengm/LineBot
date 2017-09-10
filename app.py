@@ -225,7 +225,7 @@ def handle_text_message(event):
     elif sys_data.intercept:
         intercept_text(event)
 
-    if text == '43afdb2391686dd9710c3879a86c04b5c0a2fc3391ffd2c6a05e4ce0': # SHA of CALCULATOR DEBUG
+    if text == '43afdb2391686dd9710c3879a86c04b5c0a2fc3391ffd2c6a05e4ce0':
         sys_data.calc_debug = not sys_data.calc_debug
         print 'Calculator debugging {}.'.format('enabled' if sys_data.calc_debug else 'disabled')
 
