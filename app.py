@@ -497,8 +497,8 @@ def handle_image_message(event):
     msg = event.message
 
     try:
-        result = img_executor.image_handle(msg)
-        api_reply(token, result, src)
+        text = img_executor.image_handle(msg)
+        api_reply(token, TextSendMessage(text=text), src)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
