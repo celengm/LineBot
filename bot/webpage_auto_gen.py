@@ -9,6 +9,7 @@ import traceback
 import time
 from datetime import datetime, timedelta
 from flask import request, url_for, render_template
+from flask.globals import current_app
 
 from linebot.models import TextSendMessage
 

@@ -63,7 +63,7 @@ class group_ban(object):
         else:
             try:
                 cmd = u'INSERT INTO group_ban(groupId, silence, admin, admin_sha) VALUES(%(id)s, FALSE, %(adm)s, %(key)s)'
-                cmd_dict = {'id': groupId, 'adm': adminUID, 'key': str(hashlib.sha224(key_for_admin.encode('utf-8')).hexdigest())}
+                cmd_dict = {'id': groupId, 'adm': adminUID, 'key': key_for_admin}
                 self.sql_cmd(cmd, cmd_dict)
                 return True
             except IntegrityError as ex:
@@ -157,7 +157,7 @@ class group_ban(object):
         
         if len(results) >= 1:
             cmd = u'UPDATE group_ban SET {} = %(mod)s, {} = %(newkey)s WHERE groupId = %(id)s'.format(mod_col_dict[moderator_pos],
-                                                                                                      mod_sha_dict[moderator_pos],)
+                                                                                                      mod_sha_dict[moderator_pos])
             cmd_dict = {'id': groupId, 
                         'mod': None if delete_mod else newModUID, 
                         'newkey': None if delete_mod else hashlib.sha224(newkey).hexdigest()}
