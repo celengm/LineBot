@@ -12,16 +12,7 @@ class img_msg(object):
 
         self.tmp_path = tmp_path
 
-    def image_handle_user(self, line_msg):
-        message_content = self._line_api.get_content(line_msg.id)
-        for chunk in message_content.iter_content(4096):
-            chunk_data = chunk
-            break
-        sha224 = hashlib.sha224(chunk_data).hexdigest()
-
-        return sha224
-
-    def image_handle_group(self, line_msg):
+    def image_sha224_of_message(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
         for chunk in message_content.iter_content(4096):
             chunk_data = chunk

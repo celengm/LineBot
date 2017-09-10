@@ -493,12 +493,12 @@ def handle_image_message(event):
     msg = event.message
 
     try:
+        image_sha = img_executor.image_sha224_of_message(msg)
+        print image_sha
+
         if isinstance(src, SourceUser):
-            image_sha = img_executor.image_handle_user(msg)
             api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224):'), TextSendMessage(text=image_sha)], src)
-            return
         else:
-            image_sha = img_executor.image_handle_group(msg)
             auto_reply_system(token, image_sha, False, src, True)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
