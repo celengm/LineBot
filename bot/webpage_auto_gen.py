@@ -28,7 +28,7 @@ class webpage(object):
 
 
     def rec_error(self, err_sum, channel_id):
-        with app.app_context():
+        with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
             err_detail += u'頻道ID: {}'.format(channel_id)
@@ -45,19 +45,19 @@ class webpage(object):
             return err_sum + u'\n\n' + err_list
     
     def rec_query(self, full_query):
-        with app.app_context():
+        with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._query_route][timestamp] = full_query
             return self._app_root_url + url_for('full_query', timestamp=timestamp)[1:]
     
     def rec_info(self, full_info):
-        with app.app_context():
+        with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._info_route][timestamp] = full_info
             return self._app_root_url + url_for('full_info', timestamp=timestamp)[1:]
     
     def rec_text(self, textmsg_list):
-        with app.app_context():
+        with self._flask_app.app_context():
             if not isinstance(textmsg_list, (list, tuple)):
                 textmsg_list = [textmsg_list]
     
