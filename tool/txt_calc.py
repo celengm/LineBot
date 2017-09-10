@@ -34,7 +34,7 @@ class text_calculator(object):
                 print text.encode('utf-8')
                 print 'Result variant:'
                 print str(result).encode('utf-8')
-        except:
+        except Exception as ex:
             if debug:
                 print 'String math calculation failed:'
                 print type(result)
@@ -42,6 +42,8 @@ class text_calculator(object):
                 print text.encode('utf-8')
                 print 'Result variant:'
                 print str(result).encode('utf-8')
+                print 'Error:'
+                print ex
             return 
 
     @staticmethod
