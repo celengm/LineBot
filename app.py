@@ -420,8 +420,12 @@ def handle_text_message(event):
             else:
                 calc_result = txt_calc.text_calculator.calc(text, sys_data.calc_debug)
                 if calc_result is not None:
+                    calc_result_str = str(calc_result)
                     sys_data.helper_cmd_dict['CALC'].count += 1
-                    text = u'算式: {}\n\n計算結果: {}'.format('\n{}'.format(text) if '\n' in text else text, calc_result)
+                    if len(calc_result_str) > 100:
+                        text = u'算式: {}\n\n計算結果: {}'.format('\n{}'.format(text) if '\n' in text else text, calc_result)
+                    else:
+                        text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(calc_result_str))
 
                     api_reply(token, TextSendMessage(text=text), src)
                     return
@@ -677,11 +681,17 @@ def auto_reply_system(token, keyword, is_sticker_kw, src, is_kw_pic_sha=False):
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'), result[int(kwdict_col.is_pic_reply)])
 
         if result[int(kwdict_col.is_pic_reply)]:                                                                         
-            api_reply(token, TemplateSendMessage(alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n關鍵字ID: {}'.format(u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
-                    reply_obj['main'], 
-                    result[int(kwdict_col.id)]),
-                template=ButtonsTemplate(text=u'{}ID: {}'.format(u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(reply_obj['attachment']),
-                    result[int(kwdict_col.id)]), 
+            api_reply(token, TemplateSendMessage(
+                alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n關鍵字ID: {}'.format(
+                    u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(
+                        reply_obj['attachment']),
+                        reply_obj['main'], 
+                        result[int(kwdict_col.id)]),
+                template=ButtonsTemplate(
+                    text=u'{}ID: {}'.format(
+                        u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(
+                            reply_obj['attachment']),
+                            result[int(kwdict_col.id)]), 
                     thumbnail_image_url=reply_obj['main'],
                     actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
             return True
