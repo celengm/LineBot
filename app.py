@@ -13,7 +13,6 @@ import validators
 import time
 from collections import defaultdict
 from urlparse import urlparse
-from cgi import escape
 from datetime import datetime
 from error import error
 from flask import Flask, request, url_for
@@ -59,6 +58,14 @@ msg_track = message_tracker("postgres", os.environ["DATABASE_URL"])
 
 # Main initialization
 app = Flask(__name__)
+
+app_root_url = os.getenv('APP_ROOT_URL', None)
+if app_root_url is None or app_root_url.startswith('http'):
+    print 'Define App Root URL / Remove HTTP protocol of url'
+    sys.exit(1)
+else:
+    app.config.update(SERVER_NAME=app_root_url)
+
 sys_data = system_data()
 game_data = game_objects()
 
@@ -111,12 +118,6 @@ oxford_dict_obj = msg_handler.oxford_dict('en')
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
-app_root_url = os.getenv('APP_ROOT_URL', None)
-if app_root_url is None or app_root_url.startswith('http'):
-    print 'Define App Root URL / Remove HTTP protocol of url'
-    sys.exit(1)
-else:
-    app.config.update(SERVER_NAME=app_root_url)
 webpage_generator = webpage_auto_gen.webpage(app)
 
 # Message handler initialization

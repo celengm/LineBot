@@ -69,7 +69,7 @@ class message_tracker(object):
             cmd_dict = {'cid': cid}
             result = self.sql_cmd(cmd, cmd_dict)
             
-            if len(result) < 1:
+            if len(result) is None:
                 self.new_data(cid)
             
             column_to_add = msg_track_col(int(type_of_event)).column_name
