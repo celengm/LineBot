@@ -695,7 +695,7 @@ class text_msg(object):
 
     def PIC(self, src, params):
         last_pic_sha = self.system_data.get_last_pic_sha(line_api_proc.source_channel_id(src))
-        if last_sticker is not None:
+        if last_pic_sha is not None:
             text = u'最後圖片雜湊碼(SHA224)'
             return (text, last_pic_sha)
         else:
