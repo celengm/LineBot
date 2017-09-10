@@ -28,38 +28,42 @@ class webpage(object):
 
 
     def rec_error(self, err_sum, channel_id):
-        timestamp = str(int(time.time()))
-        err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
-        err_detail += u'頻道ID: {}'.format(channel_id)
-        err_detail += u'\n\n'
-        err_detail += traceback.format_exc().decode('utf-8')
+        with app.app_context():
+            timestamp = str(int(time.time()))
+            err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
+            err_detail += u'頻道ID: {}'.format(channel_id)
+            err_detail += u'\n\n'
+            err_detail += traceback.format_exc().decode('utf-8')
 
-        print err_detail.encode('utf-8')
-        self._page_content[self._error_route][timestamp] = err_detail
+            print err_detail.encode('utf-8')
+            self._page_content[self._error_route][timestamp] = err_detail
 
-        err_list = u'詳細錯誤URL: {}\n錯誤清單: {}'.format(
-            self._app_root_url + url_for('get_error_message', timestamp=timestamp)[1:],
-            self._app_root_url + url_for('get_error_list')[1:])
-        
-        return err_sum + u'\n\n' + err_list
+            err_list = u'詳細錯誤URL: {}\n錯誤清單: {}'.format(
+                self._app_root_url + url_for('get_error_message', timestamp=timestamp)[1:],
+                self._app_root_url + url_for('get_error_list')[1:])
+            
+            return err_sum + u'\n\n' + err_list
     
     def rec_query(self, full_query):
-        timestamp = str(int(time.time()))
-        self._page_content[self._query_route][timestamp] = full_query
-        return self._app_root_url + url_for('full_query', timestamp=timestamp)[1:]
+        with app.app_context():
+            timestamp = str(int(time.time()))
+            self._page_content[self._query_route][timestamp] = full_query
+            return self._app_root_url + url_for('full_query', timestamp=timestamp)[1:]
     
     def rec_info(self, full_info):
-        timestamp = str(int(time.time()))
-        self._page_content[self._info_route][timestamp] = full_info
-        return self._app_root_url + url_for('full_info', timestamp=timestamp)[1:]
+        with app.app_context():
+            timestamp = str(int(time.time()))
+            self._page_content[self._info_route][timestamp] = full_info
+            return self._app_root_url + url_for('full_info', timestamp=timestamp)[1:]
     
     def rec_text(self, textmsg_list):
-        if not isinstance(textmsg_list, (list, tuple)):
-            textmsg_list = [textmsg_list]
+        with app.app_context():
+            if not isinstance(textmsg_list, (list, tuple)):
+                textmsg_list = [textmsg_list]
     
-        timestamp = str(int(time.time()))
-        self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
-        return self._app_root_url + url_for('full_content', timestamp=timestamp)[1:]
+            timestamp = str(int(time.time()))
+            self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
+            return self._app_root_url + url_for('full_content', timestamp=timestamp)[1:]
 
     def error_timestamp_list(self):
         sorted_list = sorted(self._page_content[self._error_route].keys(), key=self._page_content[self._error_route].get, reverse=True)
