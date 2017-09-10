@@ -112,13 +112,11 @@ static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
 app_root_url = os.getenv('APP_ROOT_URL', None)
-if app_root_url is None:
-    print 'Define App Root URL'
+if app_root_url is None or app_root_url.startswith('http'):
+    print 'Define App Root URL / Remove HTTP protocol of url'
     sys.exit(1)
 else:
-    pass
-    print app.config.get('SERVER_NAME')
-    # app.config.update(SERVER_NAME=app_root_url)
+    app.config.update(SERVER_NAME=app_root_url)
 webpage_generator = webpage_auto_gen.webpage(app)
 
 # Message handler initialization
