@@ -15,7 +15,7 @@ from linebot.models import TextSendMessage
 
 class webpage(object):
     def __init__(self, flask_app, app_root_url):
-        self._app_root_url = app_root_url
+        self._app_root_url = self._flask_app.config.get('SERVER_NAME')
         self._flask_app = flask_app
         self._error_route = 'Error'
         self._query_route = 'FullQuery'

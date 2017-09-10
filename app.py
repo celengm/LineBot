@@ -111,8 +111,13 @@ oxford_dict_obj = msg_handler.oxford_dict('en')
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
     
 # Webpage auto generator
-app.config.from_envvar('APP_ROOT_URL')
-webpage_generator = webpage_auto_gen.webpage(app, app_url)
+app_root_url = os.getenv('APP_ROOT_URL', None)
+if app_root_url is None:
+    print 'Define App Root URL'
+    sys.exit(1)
+else:
+    app.config.update(SERVER_NAME=app_root_url)
+webpage_generator = webpage_auto_gen.webpage(app)
 
 # Message handler initialization
 command_executor = msg_handler.text_msg(app, line_api, kwd, gb, msg_track, 
