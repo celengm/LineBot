@@ -600,7 +600,7 @@ class text_msg(object):
                     
                     if 'derivativeOf' in lexent:
                         derivative_arr = lexent['derivativeOf']
-                        text += u'\nThe derivative of this word is \'{}\'.'.format(', '.join([derivative_data['text'] for derivative_data in derivative_arr]))
+                        text += u'Derivative: {}'.format(', '.join([derivative_data['text'] for derivative_data in derivative_arr]))
 
                     lexentarr = lexent['entries']
                     for lexentElem in lexentarr:
