@@ -23,11 +23,11 @@ class db_query_manager(object):
             else:
                 raise ex
         
+        self.conn.commit()
         return result
 
 
     def close_connection(self):
-        self.conn.commit()
         self.cur.close()
         self.conn.close()
 
