@@ -499,7 +499,7 @@ def handle_image_message(event):
             return
         else:
             image_sha = img_executor.image_handle_group(msg)
-            auto_reply_system(token, image_sha, False, True)
+            auto_reply_system(token, image_sha, False, src, True)
     except ImgurClientError as e:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
