@@ -11,7 +11,9 @@ from sqlalchemy.exc import IntegrityError
 from db import group_ban, gb_col
 import hashlib
 
-class message_tracker(db_base):
+from .db_base import db_base_obj
+
+class message_tracker(db_base_obj):
 
     def __init__(self, scheme, db_url):
         super(message_tracker, self).__init__(scheme, db_url)

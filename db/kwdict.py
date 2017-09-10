@@ -6,10 +6,9 @@ import urlparse
 import psycopg2
 
 from error import error
+from .db_base import db_base_obj
 
-import collections
-
-class kw_dict_mgr(object):
+class kw_dict_mgr(db_base_obj):
 
     def __init__(self, scheme, db_url):
         super(kw_dict_mgr, self).__init__(scheme, db_url)

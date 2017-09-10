@@ -4,7 +4,7 @@ import urlparse
 import psycopg2
 from sqlalchemy.exc import IntegrityError
 
-class db_base(object):
+class db_base_obj(object):
     def __init__(self, scheme, db_url):
         urlparse.uses_netloc.append(scheme)
         self.url = urlparse.urlparse(db_url)
