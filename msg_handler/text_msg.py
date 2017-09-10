@@ -132,7 +132,7 @@ class text_msg(object):
                     is_stk_int = system.string_can_be_int(kw)
                     is_kw_pic_hash = len(kw) == 56
 
-                    if is_stk_int and is_kw_pic_hash:
+                    if is_stk_int ^ is_kw_pic_hash:
                         results = self.kwd.insert_keyword(kw, rep, new_uid, pinned, is_stk_int, False, is_kw_pic_hash)
                     else:
                         results = None
