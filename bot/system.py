@@ -173,7 +173,7 @@ class line_api_proc(object):
     def get_content(self, msg_id):
         return self._line_api.get_message_content(msg_id)
 
-    def reply_message(self, msgs):
+    def reply_message(self, reply_token, msgs):
         self._line_api.reply_message(reply_token, msgs)
 
     @staticmethod
