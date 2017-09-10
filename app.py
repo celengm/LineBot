@@ -636,12 +636,14 @@ def api_reply(reply_token, msgs, src):
 
 
 def intercept_text(event):
-    user_id = line_api_proc.source_user_id(event.source)
-    user_profile = line_api.profile(user_id)
+    uid = line_api_proc.source_user_id(src)
+    src = event.source
+
+    user_profile = line_api.profile(uid, src)
 
     print '==========================================='
-    print 'From Channel ID \'{}\''.format(line_api_proc.source_channel_id(event.source))
-    print 'From User ID \'{}\' ({})'.format(user_id, user_profile.display_name.encode('utf-8') if user_profile is not None else 'unknown')
+    print 'From Channel ID \'{}\''.format(line_api_proc.source_channel_id(src))
+    print 'From User ID \'{}\' ({})'.format(uid, user_profile.display_name.encode('utf-8') if user_profile is not None else 'unknown')
     print 'Message \'{}\''.format(event.message.text.encode('utf-8'))
     print '=================================================================='
 

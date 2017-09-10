@@ -8,6 +8,8 @@ import operator
 import traceback
 from math import *
 
+from linebot.models import SourceGroup, SourceRoom, SourceUser
+
 class _command(object):
     def __init__(self, min_split=2, max_split=2, non_user_permission_required=False):
         self._split_max = max_split
@@ -163,9 +165,33 @@ class line_api_proc(object):
     def __init__(self, line_api):
         self._line_api = line_api
 
-    def profile(self, uid):
+    def profile(self, uid, src=None):
         try:
-            return self._line_api.get_profile(uid)
+            if src is None:
+                return self._line_api.get_profile(uid)
+            else:
+                if isinstance(src, SourceUser):
+                    return self.profile(uid, src)
+                elif isinstance(src, SourceGroup):
+                    return self.profile_group(uid, line_api_proc.source_channel_id(src), src)
+                elif isinstance(src, SourceRoom):
+                    return self.profile_room(uid, line_api_proc.source_channel_id(src), src)
+                else:
+                    raise ValueError('Instance not defined.')
+        except exceptions.LineBotApiError as ex:
+            if ex.status_code == 404:
+                return None
+
+    def profile_group(self, gid, uid):
+        try:
+            return self._line_api.get_group_member_profile(gid, uid)
+        except exceptions.LineBotApiError as ex:
+            if ex.status_code == 404:
+                return None
+
+    def profile_room(self, rid, uid):
+        try:
+            return self._line_api.get_room_member_profile(gid, uid)
         except exceptions.LineBotApiError as ex:
             if ex.status_code == 404:
                 return None
