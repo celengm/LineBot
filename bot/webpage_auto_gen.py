@@ -59,6 +59,10 @@ class webpage(object):
         with self._flask_app.test_request_context():
             if not isinstance(textmsg_list, (list, tuple)):
                 textmsg_list = [textmsg_list]
+
+            
+
+            print request.url
     
             timestamp = str(int(time.time()))
             self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
