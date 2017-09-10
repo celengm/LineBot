@@ -15,7 +15,6 @@ class img_msg(object):
 
         with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
             for chunk in message_content.iter_content():
-                print len(chunk)
                 tf.write(chunk)
             tempfile_path = tf.name
 

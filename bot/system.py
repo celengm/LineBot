@@ -173,9 +173,9 @@ class line_api_proc(object):
                 if isinstance(src, SourceUser):
                     return self.profile(uid, src)
                 elif isinstance(src, SourceGroup):
-                    return self.profile_group(uid, line_api_proc.source_channel_id(src), src)
+                    return self.profile_group(line_api_proc.source_channel_id(src), uid)
                 elif isinstance(src, SourceRoom):
-                    return self.profile_room(uid, line_api_proc.source_channel_id(src), src)
+                    return self.profile_room(line_api_proc.source_channel_id(src), uid)
                 else:
                     raise ValueError('Instance not defined.')
         except exceptions.LineBotApiError as ex:
