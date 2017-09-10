@@ -636,8 +636,8 @@ def api_reply(reply_token, msgs, src):
 
 
 def intercept_text(event):
-    uid = line_api_proc.source_user_id(src)
     src = event.source
+    uid = line_api_proc.source_user_id(src)
 
     user_profile = line_api.profile(uid, src)
 
