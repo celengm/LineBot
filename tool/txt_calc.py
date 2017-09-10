@@ -52,4 +52,5 @@ class text_calculator(object):
         allchars = ''.join(chr(i) for i in xrange(256))
         identity = string.maketrans('', '')
         nondigits = allchars.translate(identity, string.digits)
+        text = str(text)
         return text.translate(identity, nondigits)
