@@ -171,7 +171,7 @@ class line_api_proc(object):
                 return self._line_api.get_profile(uid)
             else:
                 if isinstance(src, SourceUser):
-                    return self.profile(uid, src)
+                    return self.profile(uid, None)
                 elif isinstance(src, SourceGroup):
                     return self.profile_group(line_api_proc.source_channel_id(src), uid)
                 elif isinstance(src, SourceRoom):

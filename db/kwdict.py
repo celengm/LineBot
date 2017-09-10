@@ -301,7 +301,7 @@ class kw_dict_mgr(object):
         if entry_row[int(kwdict_col.is_sticker_kw)]:
             text += u'(貼圖ID: {})\n'.format(kw)
         elif entry_row[int(kwdict_col.kw_pic_sha)]:
-            text += u'(圖片雜湊 {})\n'.format(kw[0:7])
+            text += u'(圖片雜湊 {})\n'.format(kw)
         else:
             text += u'{}\n'.format(kw)
 
