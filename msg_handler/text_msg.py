@@ -697,10 +697,10 @@ class text_msg(object):
         last_pic_sha = self.system_data.get_last_pic_sha(line_api_proc.source_channel_id(src))
         if last_pic_sha is not None:
             text = u'最後圖片雜湊碼(SHA224)'
-            return (text, last_pic_sha)
+            return tuple(text, last_pic_sha)
         else:
             text = u'沒有登記到本頻道的最後圖片雜湊。如果已經有貼過圖片，則可能是因為機器人剛剛才啟動而造成。\n\n本次開機時間: {}'.format(self.system_data.boot_up)
-            return (text)
+            return tuple(text)
 
     def T(self, src, params):
         if params[1] is not None:
