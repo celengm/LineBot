@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from math import *
+import time
 
 class text_calculator(object):
     @staticmethod
@@ -8,10 +9,12 @@ class text_calculator(object):
         if (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.'):
             return
         try:
+            print time.time()
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
                 exec(text)
+            print time.time()
 
             if result != '' and text != str(result) and isinstance(result, (float, int, long)):
                 return result
