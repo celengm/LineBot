@@ -13,7 +13,10 @@ class img_msg(object):
 
     def image_handle(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
-        sha224 = hashlib.sha224(message_content.iter_content(4096)[0]).hexdigest()
+        for chunk in message_content.iter_content(4096):
+            chunk_data = chunk
+            break
+        sha224 = hashlib.sha224(chunk_data).hexdigest()
 
         return u'File Checksum (SHA224):\n{}'.format(sha224)
 
