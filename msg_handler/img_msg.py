@@ -19,7 +19,7 @@ class img_msg(object):
             break
         sha224 = hashlib.sha224(chunk_data).hexdigest()
 
-        return u'檔案雜湊碼 (SHA224):\n{}'.format(sha224)
+        return sha224
 
     def image_handle_group(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
