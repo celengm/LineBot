@@ -325,6 +325,11 @@ def handle_text_message(event):
                     text = command_executor.STK(src, params)
 
                     api_reply(token, TextSendMessage(text=text), src)
+                # SHA224 of last PICTURE
+                elif cmd == 'PIC':
+                    text_tuple = command_executor.PIC(src, params)
+
+                    api_reply(token, [TextSendMessage(text=text) for text in text_tuple], src)
                 # TRANSLATE text to URL form
                 elif cmd == 'T':
                     text = command_executor.T(src, params)

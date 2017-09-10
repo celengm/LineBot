@@ -60,6 +60,7 @@ _sys_cmd_dict = {'S': _command(1, 1, True),
                 'B': _command(0, 0, False), 
                 'RD': _command(1, 2, False),
                 'STK': _command(0, 0, False),
+                'PIC': _command(0, 0, False),
                 'T': _command(1, 1, False)}
 
 _game_cmd_dict = {'RPS': _command(0, 4, False)}
@@ -74,6 +75,7 @@ class system_data(object):
         self._intercept = True
         self._string_calc_debug = False
         self._last_sticker = defaultdict(str)
+        self._last_pic_sha = defaultdict(str)
         self._sys_cmd_dict = _sys_cmd_dict
         self._game_cmd_dict = _game_cmd_dict
         self._helper_cmd_dict = _helper_cmd_dict
@@ -84,6 +86,12 @@ class system_data(object):
 
     def get_last_sticker(self, cid):
         return self._last_sticker.get(cid)
+
+    def set_last_pic_sha(self, cid, sha):
+        self._last_pic_sha[cid] = str(sha)
+
+    def get_last_pic_sha(self, cid):
+        return self._last_pic_sha.get(cid)
 
     @property
     def silence(self):
