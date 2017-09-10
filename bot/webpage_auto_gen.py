@@ -38,8 +38,8 @@ class webpage(object):
             self._page_content[self._error_route][timestamp] = err_detail
 
             err_list = u'詳細錯誤URL: {}\n錯誤清單: {}'.format(
-                request.url_root + url_for('get_error_message', timestamp=timestamp)[1:],
-                request.url_root + url_for('get_error_list')[1:])
+                self._flask_app.config.get('SERVER_NAME') + url_for('get_error_message', timestamp=timestamp)[1:],
+                self._flask_app.config.get('SERVER_NAME') + url_for('get_error_list')[1:])
             
             return err_sum + u'\n\n' + err_list
     
@@ -47,26 +47,22 @@ class webpage(object):
         with self._flask_app.test_request_context():
             timestamp = str(int(time.time()))
             self._page_content[self._query_route][timestamp] = full_query
-            return request.url_root + url_for('full_query', timestamp=timestamp)[1:]
+            return self._flask_app.config.get('SERVER_NAME') + url_for('full_query', timestamp=timestamp)[1:]
     
     def rec_info(self, full_info):
         with self._flask_app.test_request_context():
             timestamp = str(int(time.time()))
             self._page_content[self._info_route][timestamp] = full_info
-            return request.url_root + url_for('full_info', timestamp=timestamp)[1:]
+            return self._flask_app.config.get('SERVER_NAME') + url_for('full_info', timestamp=timestamp)[1:]
     
     def rec_text(self, textmsg_list):
         with self._flask_app.test_request_context():
             if not isinstance(textmsg_list, (list, tuple)):
                 textmsg_list = [textmsg_list]
-
-            
-
-            print request.url
     
             timestamp = str(int(time.time()))
             self._page_content[self._text_route][timestamp] = u'\n===============================\n'.join([u'【Message {}】\n\n{}'.format(index, txt.text) for index, txt in enumerate(textmsg_list, start=1)])
-            return request.url_root + url_for('full_content', timestamp=timestamp)[1:]
+            return self._flask_app.config.get('SERVER_NAME') + url_for('full_content', timestamp=timestamp)[1:]
 
     def error_timestamp_list(self):
         sorted_list = sorted(self._page_content[self._error_route].keys(), key=self._page_content[self._error_route].get, reverse=True)
