@@ -10,8 +10,8 @@ class img_msg(object):
 
         self.tmp_path = tmp_path
 
-    def image_handle(msg):
-        message_content = self._line_api.get_content(msg.id)
+    def image_handle(self, line_msg):
+        message_content = self._line_api.get_content(line_msg.id)
 
         with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
             for chunk in message_content.iter_content():
@@ -27,7 +27,7 @@ class img_msg(object):
 
         return u'GET'
 
-    def upload_imgur(line_msg):
+    def upload_imgur(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
 
         with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
