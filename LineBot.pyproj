@@ -32,6 +32,9 @@
     <Compile Include="bot\game_object_holder.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="db\db_base.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="msg_handler\game_msg.py">
       <SubType>Code</SubType>
     </Compile>

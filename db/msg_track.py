@@ -11,35 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from db import group_ban, gb_col
 import hashlib
 
-import collections
-
-class message_tracker(object):
+class message_tracker(db_base):
 
     def __init__(self, scheme, db_url):
-        urlparse.uses_netloc.append(scheme)
-        self.url = urlparse.urlparse(db_url)
-        self._set_connection()
+        super(message_tracker, self).__init__(scheme, db_url)
         self.channel_id_length = 33
-
-
-
-    def sql_cmd_only(self, cmd):
-        return self.sql_cmd(cmd, None)
-
-    def sql_cmd(self, cmd, dict):
-        self._set_connection()
-        self.cur.execute(cmd, dict)
-        try:
-            result = self.cur.fetchall()
-        except psycopg2.ProgrammingError as ex:
-            if ex.message == 'no results to fetch':
-                result = None
-            else:
-                raise ex
-        
-        self._close_connection()
-        return result
-
 
 
 
@@ -169,24 +145,6 @@ class message_tracker(object):
 
             ret['full'] = u'\n\n'.join([message_tracker.entry_detail(data, group_ban) for data in data_list])
         return ret
-
-
-
-
-    def _close_connection(self):
-        self.conn.commit()
-        self.cur.close()
-        self.conn.close()
-
-    def _set_connection(self):
-        self.conn = psycopg2.connect(
-            database=self.url.path[1:],
-            user=self.url.username,
-            password=self.url.password,
-            host=self.url.hostname,
-            port=self.url.port
-        )
-        self.cur = self.conn.cursor()
 
 
 class msg_track_col(Enum):
