@@ -24,7 +24,8 @@ class webpage(object):
                               self._query_route: defaultdict(unicode), 
                               self._info_route: defaultdict(unicode), 
                               self._text_route: defaultdict(unicode)}
-        print self._flask_app.app_context()
+        print self._flask_app.request_context('/')
+        print self._flask_app.request_context('/callback')
 
     def rec_error(self, err_sum, channel_id):
         with self._flask_app.app_context():
