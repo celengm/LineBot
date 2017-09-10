@@ -497,9 +497,11 @@ def handle_image_message(event):
     token = event.reply_token
     msg = event.message
 
+    cid = line_api_proc.source_channel_id(src)
+    
     try:
         image_sha = img_executor.image_sha224_of_message(msg)
-        print image_sha
+        sys_data.set_last_pic_sha(cid, image_sha)
 
         if isinstance(src, SourceUser):
             api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224):'), TextSendMessage(text=image_sha)], src)
