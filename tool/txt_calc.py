@@ -33,7 +33,7 @@ class text_calculator(object):
                 print 'Original Text:'
                 print text.encode('utf-8')
                 print 'Result variant:'
-                print result.encode('utf-8')
+                print str(result).encode('utf-8')
         except:
             if debug:
                 print 'String math calculation failed:'
@@ -41,7 +41,7 @@ class text_calculator(object):
                 print 'Original Text:'
                 print text.encode('utf-8')
                 print 'Result variant:'
-                print result.encode('utf-8')
+                print str(result).encode('utf-8')
             return 
 
     @staticmethod
@@ -50,5 +50,4 @@ class text_calculator(object):
         allchars = ''.join(chr(i) for i in xrange(256))
         identity = string.maketrans('', '')
         nondigits = allchars.translate(identity, string.digits)
-        text.translate(identity, nondigits)
-        return text
+        return text.translate(identity, nondigits)
