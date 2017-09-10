@@ -19,7 +19,8 @@ class text_calculator(object):
             end_time = time.time()
 
             if isinstance(result, (float, int, long)):
-                if len(text_calculator.remove_non_digit(text)) > 10:  
+                print text_calculator.remove_non_digit(text)
+                if len(text_calculator.remove_non_digit(text)) < 10:  
                     if text != str(result):
                         return (result, end_time - start_time)
                 else:
