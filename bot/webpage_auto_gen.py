@@ -24,6 +24,7 @@ class webpage(object):
                               self._query_route: defaultdict(unicode), 
                               self._info_route: defaultdict(unicode), 
                               self._text_route: defaultdict(unicode)}
+        print self._flask_app.app_context()
 
     def rec_error(self, err_sum, channel_id):
         with self._flask_app.app_context():
@@ -37,8 +38,8 @@ class webpage(object):
             self._page_content[self._error_route][timestamp] = err_detail
 
             err_list = u'詳細錯誤URL: {}\n錯誤清單: {}'.format(
-            request.url_root + url_for('get_error_message', timestamp=timestamp)[1:],
-            request.url_root + url_for('get_error_list')[1:])
+                request.url_root + url_for('get_error_message', timestamp=timestamp)[1:],
+                request.url_root + url_for('get_error_list')[1:])
             
             return err_sum + u'\n\n' + err_list
     
