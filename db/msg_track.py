@@ -63,10 +63,13 @@ class message_tracker(db_base_obj):
         if len(cid) != self.channel_id_length:
             raise ValueError();
         else:
-            cmd = u'INSERT INTO msg_track (cid) VALUES (%(cid)s)'
-            cmd_dict = {'cid': cid}
-            self.sql_cmd(cmd, cmd_dict)
-            return True
+            try:
+                cmd = u'INSERT INTO msg_track (cid) VALUES (%(cid)s)'
+                cmd_dict = {'cid': cid}
+                self.sql_cmd(cmd, cmd_dict)
+                return True
+            except IntegrityError as e:
+                return False
 
     def get_data(self, cid):
         """return group entry"""
