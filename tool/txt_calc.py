@@ -6,7 +6,7 @@ class text_calculator(object):
     @staticmethod
     def calc(text, debug=False):
         result = ''
-        if (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.'):
+        if text_calculator.is_non_calc(text):
             return
         try:
             start_time = time.time()
@@ -20,7 +20,7 @@ class text_calculator(object):
 
             if isinstance(result, (float, int, long)):
                 print result
-                if len(text_calculator.remove_non_digit(text)) < 10:  
+                if len(text_calculator.remove_non_digit(text)) < 10:
                     if text != str(result):
                         return (result, end_time - start_time)
                 else:
@@ -53,3 +53,19 @@ class text_calculator(object):
         nondigits = allchars.translate(identity, string.digits)
         text = str(text)
         return text.translate(identity, nondigits)
+
+    @staticmethod
+    def is_non_calc(text):
+        return (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.')
+
+    @staticmethod
+    def formula_to_py(text):
+        regex = ur"([\d.]*)([\d]*[\w]*)([+\-*/]{1})"
+        
+        def add_star(match):
+            if match.group(1) != '' and match.group(2) != '':
+                return u'{}*{}{}'.format(match.group(1), match.group(2), match.group(3))
+            else:
+                return match.group()
+        
+        return re.sub(regex, add_star, text)
