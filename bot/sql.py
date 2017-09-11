@@ -31,7 +31,10 @@ class db_query_manager(object):
             else:
                 raise ex
         except psycopg2.InternalError as uiex:
-            text = uiex
+            text = uiex.message
+            text += u'\nSQL Query: {}'.format(cmd)
+            text += u'\nSQL Parameter Dict: {}'.format(dict)
+
 
             self._auto_gen.rec_error(text, traceback.format_exc().decode('utf-8'), u'(SQL DB)')
             self.close_connection()
