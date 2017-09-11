@@ -51,14 +51,14 @@ from linebot.models import (
 from imgurpython import ImgurClient
 from imgurpython.helpers.error import ImgurClientError
 
+# Main initialization
+app = Flask(__name__)
+
 # Databases initialization
-db_query = db_query_manager("postgres", os.environ["DATABASE_URL"])
+db_query = db_query_manager("postgres", os.environ["DATABASE_URL"], app)
 kwd = kw_dict_mgr(db_query)
 gb = group_ban(db_query)
 msg_track = message_tracker(db_query)
-
-# Main initialization
-app = Flask(__name__)
 
 app_root_url = os.getenv('APP_ROOT_URL', None)
 if app_root_url is None or app_root_url.startswith('http'):

@@ -3,12 +3,17 @@
 import urlparse
 import psycopg2
 from sqlalchemy.exc import IntegrityError
+import traceback
+
+from bot import webpage_auto_gen 
 
 class db_query_manager(object):
-    def __init__(self, scheme, db_url):
+    def __init__(self, scheme, db_url, flask_app):
         urlparse.uses_netloc.append(scheme)
+
         self.url = urlparse.urlparse(db_url)
         self.set_connection()
+        self._auto_gen = webpage_auto_gen.webpage(flask_app)
 
     def sql_cmd_only(self, cmd):
         return self.sql_cmd(cmd, None)
@@ -25,6 +30,15 @@ class db_query_manager(object):
                 result = None
             else:
                 raise ex
+        except psycopg2.InternalError as uiex:
+            text = uiex
+
+            self._auto_gen.rec_error(text, traceback.format_exc().decode('utf-8'), u'(SQL DB)')
+            self.close_connection()
+            self.set_connection()
+            self.sql_cmd(cmd, dict)
+        except Exception as e:
+            raise e
         
         if result is not None:
             if len(result) > 0:
