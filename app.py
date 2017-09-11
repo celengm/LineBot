@@ -27,7 +27,7 @@ import json
 from db import kw_dict_mgr, kwdict_col, group_ban, gb_col, message_tracker, msg_track_col, msg_event_type
 
 # tool import
-from tool import mff, random_gen, txt_calc
+from tool import txt_calc
 
 # games import
 import game
@@ -125,6 +125,7 @@ webpage_generator = webpage_auto_gen.webpage(app)
 command_executor = msg_handler.text_msg(app, line_api, kwd, gb, msg_track, 
                                         oxford_dict_obj, [group_mod, group_admin, administrator], sys_data, 
                                         game_data, webpage_generator, imgur_api)
+helper_executor = msg_handler.helper(sys_data)
 game_executor = msg_handler.game_msg(game_data, line_api)
 img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path, kwd)
 
@@ -138,7 +139,6 @@ def make_tmp_dir():
         else:
             raise
 
-# TODO: make error an object (time, detail, url, error type)
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -256,6 +256,8 @@ def handle_text_message(event):
                 if isinstance(params, unicode):
                     api_reply(token, TextSendMessage(text=params), src)
                     return
+                else:
+                    sys_data.sys_cmd_dict[cmd].count += 1
                 
                 # SQL Command
                 if cmd == 'S':
@@ -346,36 +348,18 @@ def handle_text_message(event):
                 else:
                     sys_data.sys_cmd_dict[cmd].count -= 1
             elif head == 'HELP':
-                data = msg_handler.split(text, splitter, 2)
-                sys_data.helper_cmd_dict['MFF'].count += 1
+                params = helper_executor.split_verify(cmd, splitter, oth)
 
-                # TODO: restruct helper
-                # TODO: Helper modulize
-                if data[1].upper().startswith('MFF'):
-                    api_reply(token, [TextSendMessage(text=mff.mff_dmg_calc.help_code()),
-                                      TextSendMessage(text=u'下則訊息是訊息範本，您可以直接將其複製，更改其內容，然後使用。或是遵照以下格式輸入資料。\n\n{代碼(參見上方)} {參數}(%)\n\n例如:\nMFF\nSKC 100%\n魔力 1090%\n魔力 10.9\n\n欲察看更多範例，請前往 https://sites.google.com/view/jellybot/mff傷害計算'),
-                                      TextSendMessage(text=mff.mff_dmg_calc.help_sample())], src)
+                if isinstance(params, unicode):
+                    api_reply(token, TextSendMessage(text=params), src)
+                    return
                 else:
-                    job = mff.mff_dmg_calc.text_job_parser(data[1])
+                    sys_data.helper_cmd_dict[cmd].count += 1
 
-                    dmg_calc_dict = [[u'破防前非爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_weak(job)],
-                                     [u'破防前爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_crt_weak(job)],
-                                     [u'已破防非爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_break_weak(job)],
-                                     [u'已破防爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_break_crt_weak(job)],
-                                     [u'破防前非爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg(job)],
-                                     [u'破防前爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_crt(job)],
-                                     [u'已破防非爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_break(job)],
-                                     [u'已破防爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_break_crt(job)]]
+                if cmd == 'MFF':
+                    message_instance = helper_executor.MFF(params)
 
-                    text = u'傷害表:'
-                    for title, value in dmg_calc_dict:
-                        text += u'\n\n'
-                        text += u'{}\n首發: {:.0f}\n連發: {:.0f}\n累積傷害(依次): {}'.format(title,
-                                                                                            value['first'],
-                                                                                            value['continual'],
-                                                                                            u', '.join('{:.0f}'.format(x) for x in value['list_of_sum']))
-                    
-                    api_reply(token, TextSendMessage(text=text), src)
+                    api_reply(token, message_instance, src)
             elif head == 'G':
                 if cmd not in sys_data.game_cmd_dict:
                     text = error.main.invalid_thing(u'遊戲', cmd)
@@ -422,7 +406,7 @@ def handle_text_message(event):
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
-                    # optimize class type cast (int->str), cast on request webpage still slow
+                    # IMPORTANT: Request timeout will happen if the result of calculation is long
 
                     result = calc_result[0]
                     calc_result_output = u'算式: {}\n計算花費: {}秒\n計算結果: {}'.format(
@@ -476,7 +460,6 @@ def handle_sticker_message(event):
     src = event.source
     cid = line_api_proc.source_channel_id(src)
     
-    # TODO: Modulize handle received sticker message
     sys_data.set_last_sticker(cid, sticker_id)
 
     global game_data
@@ -498,12 +481,12 @@ def handle_sticker_message(event):
         else:
             kwdata = u'無相關回覆組ID。\n'
 
-        api_reply(rep,
-                [TextSendMessage(text=kwdata + u'貼圖圖包ID: {}\n貼圖圖片ID: {}'.format(package_id, sticker_id)),
-                 TextSendMessage(text=u'圖片路徑(Android):\nemulated\\0\\Android\\data\\jp.naver.line.android\\stickers\\{}\\{}'.format(package_id, sticker_id)),
-                 TextSendMessage(text=u'圖片路徑(Windows):\nC:\\Users\\USER_NAME\\AppData\\Local\\LINE\\Data\\Sticker\\{}\\{}'.format(package_id, sticker_id)),
-                 TextSendMessage(text=u'圖片路徑(網路):\n{}'.format(kw_dict_mgr.sticker_png_url(sticker_id)))],
-                src)
+        api_reply(rep, 
+                  [TextSendMessage(text=kwdata + u'貼圖圖包ID: {}\n貼圖圖片ID: {}'.format(package_id, sticker_id)),
+                  TextSendMessage(text=u'圖片路徑(Android):\nemulated\\0\\Android\\data\\jp.naver.line.android\\stickers\\{}\\{}'.format(package_id, sticker_id)),
+                  TextSendMessage(text=u'圖片路徑(Windows):\nC:\\Users\\USER_NAME\\AppData\\Local\\LINE\\Data\\Sticker\\{}\\{}'.format(package_id, sticker_id)),
+                  TextSendMessage(text=u'圖片路徑(網路):\n{}'.format(kw_dict_mgr.sticker_png_url(sticker_id)))],
+                  src)
     else:
         auto_reply_system(rep, sticker_id, True, src)
 

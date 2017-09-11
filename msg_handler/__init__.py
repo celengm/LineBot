@@ -1,5 +1,5 @@
 from .text_msg import (
-    text_msg, oxford_dict, split
+    text_msg, oxford_dict, helper, split
 )
 
 from .game_msg import (

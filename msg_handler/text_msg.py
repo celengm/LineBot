@@ -737,7 +737,55 @@ class text_msg(object):
             return error.main.lack_of_thing(u'參數')
 
         params.insert(0, None)
-        self.system_data.sys_cmd_dict[cmd].count += 1
+        return params
+
+
+class helper(object):
+    def __init__(self, sys_data):
+        self.system_data = sys_data
+
+    def MFF(self, params):
+        if params.count(not None) == 0:
+            return [TextSendMessage(text=mff.mff_dmg_calc.help_code()),
+                    TextSendMessage(text=u'下則訊息是訊息範本，您可以直接將其複製，更改其內容，然後使用。或是遵照以下格式輸入資料。\n\n{代碼(參見上方)} {參數}(%)\n\n例如:\nMFF\nSKC 100%\n魔力 1090%\n魔力 10.9\n\n欲察看更多範例，請前往 https://sites.google.com/view/jellybot/mff傷害計算'),
+                    TextSendMessage(text=mff.mff_dmg_calc.help_sample())]
+        else:
+            content = params[0]
+
+            job = mff.mff_dmg_calc.text_job_parser(content)
+
+            dmg_calc_dict = [[u'破防前非爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_weak(job)],
+                             [u'破防前爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_crt_weak(job)],
+                             [u'已破防非爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_break_weak(job)],
+                             [u'已破防爆擊(弱點屬性)', mff.mff_dmg_calc.dmg_break_crt_weak(job)],
+                             [u'破防前非爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg(job)],
+                             [u'破防前爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_crt(job)],
+                             [u'已破防非爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_break(job)],
+                             [u'已破防爆擊(非弱點屬性)', mff.mff_dmg_calc.dmg_break_crt(job)]]
+
+            text = u'傷害表:'
+            for title, value in dmg_calc_dict:
+                text += u'\n\n'
+                text += u'{}\n首發: {:.0f}\n連發: {:.0f}\n累積傷害(依次): {}'.format(
+                    title,
+                    value['first'],
+                    value['continual'],
+                    u', '.join('{:.0f}'.format(x) for x in value['list_of_sum']))
+            
+            return TextSendMessage(text=text)
+
+    def split_verify(self, cmd, splitter, param_text):
+        if cmd not in self.system_data.helper_cmd_dict:
+            return error.main.invalid_thing(u'指令', cmd)
+
+        max_prm = self.system_data.sys_cmd_dict[cmd].split_max
+        min_prm = self.system_data.sys_cmd_dict[cmd].split_min
+        params = split(param_text, splitter, max_prm)
+
+        if min_prm > len(params) - params.count(None):
+            return error.main.lack_of_thing(u'參數')
+
+        params.insert(0, None)
         return params
 
 

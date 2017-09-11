@@ -65,8 +65,7 @@ _sys_cmd_dict = {'S': _command(1, 1, True),
 
 _game_cmd_dict = {'RPS': _command(0, 4, False)}
 
-_helper_cmd_dict = {'MFF': _command(1, 8, False),
-                    'CALC':  _command(0, 0, False)}
+_helper_cmd_dict = {'MFF': _command(0, 8, False)}
 
 class system_data(object):
     def __init__(self):
