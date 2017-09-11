@@ -35,12 +35,20 @@ class db_query_manager(object):
             text += u'\nSQL Query: {}'.format(cmd)
             text += u'\nSQL Parameter Dict: {}'.format(dict)
 
+            result = None
 
             self._auto_gen.rec_error(text, traceback.format_exc().decode('utf-8'), u'(SQL DB)')
             self.close_connection()
             self.set_connection()
             self.sql_cmd(cmd, dict)
         except Exception as e:
+            text = e.message
+            text += u'\nSQL Query: {}'.format(cmd)
+            text += u'\nSQL Parameter Dict: {}'.format(dict)
+
+            result = None
+
+            self._auto_gen.rec_error(text, traceback.format_exc().decode('utf-8'), u'(SQL DB)')
             raise e
         
         if result is not None:
