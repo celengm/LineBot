@@ -422,7 +422,7 @@ def handle_text_message(event):
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
-                    # will string.format cause delay when format param is string?
+                    # optimize class type cast (int->str), cast on request webpage still slow
 
                     result = calc_result[0]
                     calc_result_output = u'算式: {}\n計算花費: {}秒\n計算結果: {}'.format(

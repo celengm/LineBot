@@ -14,16 +14,18 @@ class db_query_manager(object):
         return self.sql_cmd(cmd, None)
 
     def sql_cmd(self, cmd, dict):
-        self.cur.execute(cmd, dict)
         try:
+            self.cur.execute(cmd, dict)
             result = self.cur.fetchall()
+            self.conn.commit()
         except psycopg2.ProgrammingError as ex:
             if ex.message == 'no results to fetch':
+                result = None
+            elif ex.message == 'can\'t execute an empty query':
                 result = None
             else:
                 raise ex
         
-        self.conn.commit()
         return result
 
 

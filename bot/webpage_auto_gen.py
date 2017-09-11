@@ -26,7 +26,7 @@ class webpage(object):
 
     def rec_error(self, err_sum, decoded_traceback, channel_id):
         with self._flask_app.app_context():
-            timestamp = str(int(time.time()))
+            timestamp = str(int(time.time()) + 8*60*60)
             err_detail = u'錯誤發生時間: {}\n'.format(datetime.now() + timedelta(hours=8))
             err_detail += u'頻道ID: {}'.format(channel_id)
             err_detail += u'\n\n'

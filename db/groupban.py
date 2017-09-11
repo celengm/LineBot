@@ -60,7 +60,7 @@ class group_ban(db_base_obj):
         cmd = u'SELECT * FROM group_ban WHERE groupId = %(gid)s'
         cmd_dict = {'gid': groupId}
         result = self.sql_cmd(cmd, cmd_dict)
-        if len(result) >= 1:
+        if result is not None and len(result) >= 1:
             return result[0]
         else:
             return None
