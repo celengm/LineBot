@@ -154,10 +154,10 @@ def callback():
         #handler.handle(body, signature)
 
         # Multi Thread
-        #import threading
-        #HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
-        #HandleThread.start()
-        thread.start_new_thread(handler.handle, (body, signature))
+        import threading
+        HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        HandleThread.start()
+        #thread.start_new_thread(handler.handle, (body, signature))
     except exceptions.InvalidSignatureError:
         abort(400)
 
