@@ -46,8 +46,6 @@ class message_tracker(db_base_obj):
             cmd = u'SELECT * FROM msg_track WHERE cid = %(cid)s'
             cmd_dict = {'cid': cid}
             result = self.sql_cmd(cmd, cmd_dict)
-            print result
-            print cmd
             
             if result is None:
                 self.new_data(cid)
