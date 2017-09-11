@@ -61,7 +61,6 @@ class db_query_manager(object):
 
 
     def close_connection(self):
-        self.cur.close()
         self.conn.close()
 
     def set_connection(self):
