@@ -6,4 +6,4 @@ validators
 numpy
 enum34
 imgurpython
-rq
+sympy

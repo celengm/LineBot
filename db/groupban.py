@@ -60,10 +60,7 @@ class group_ban(db_base_obj):
         cmd = u'SELECT * FROM group_ban WHERE groupId = %(gid)s'
         cmd_dict = {'gid': groupId}
         result = self.sql_cmd(cmd, cmd_dict)
-        if result is not None and len(result) >= 1:
-            return result[0]
-        else:
-            return None
+        return result[0] if result is not None else None
 
     def set_silence(self, groupId, set, key):
         if len(groupId) != self.id_length:
@@ -76,7 +73,7 @@ class group_ban(db_base_obj):
         cmd_check_dict = {'key': hashlib.sha224(key).hexdigest(), 
                           'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
-        if len(results) >= 1:
+        if results is not None:
             cmd = u'UPDATE group_ban SET silence = %(set)s WHERE groupId = %(id)s'
             cmd_dict = {'id': groupId, 'set': set}
             self.sql_cmd(cmd, cmd_dict)
@@ -92,7 +89,7 @@ class group_ban(db_base_obj):
                           'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
 
-        if len(results) >= 1:
+        if results is not None:
             cmd = u'UPDATE group_ban SET admin = %(adm)s, admin_sha = %(sha)s WHERE groupId = %(id)s'
             cmd_dict = {'id': groupId, 'adm': newAdminUID, 'sha': hashlib.sha224(newkey).hexdigest()}
             self.sql_cmd(cmd, cmd_dict)
@@ -133,7 +130,7 @@ class group_ban(db_base_obj):
                           'gid': groupId}
         results = self.sql_cmd(cmd_check, cmd_check_dict)
         
-        if len(results) >= 1:
+        if results is not None:
             cmd = u'UPDATE group_ban SET {} = %(mod)s, {} = %(newkey)s WHERE groupId = %(id)s'.format(mod_col_dict[moderator_pos],
                                                                                                       mod_sha_dict[moderator_pos])
             cmd_dict = {'id': groupId, 

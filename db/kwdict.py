@@ -55,10 +55,9 @@ class kw_dict_mgr(db_base_obj):
             return error.main.invalid_thing_with_correct_format(u'圖片回覆附加文字', u'字數大於0，但小於50字(中文25字)的字串', 
                                                                 illegal_reply_object_test['test_reply_object']['attachment'])
         elif kw_pic_sha and len(keyword) != self._file_hash_str_length:
-            raise ValueError('Length of the keyword is invalid (Not {}), use {} encryption to generate the checksum of the file.'.format(self._file_hash_str_length, 
-                                                                                                                                         self._file_hash_type))
-
-
+            raise ValueError('Length of the keyword is invalid (Not {}), use {} encryption to generate the checksum of the file.'.format(
+                self._file_hash_str_length, 
+                self._file_hash_type))
         else:
             cmd = u'INSERT INTO keyword_dict(keyword, reply, creator, used_count, admin, is_sticker_kw, is_pic_reply, kw_pic_sha) \
                     VALUES(%(kw)s, %(rep)s, %(cid)s, 0, %(sys)s, %(stk_kw)s, %(pic_rep)s, %(kw_pic_sha)s) \
@@ -82,7 +81,7 @@ class kw_dict_mgr(db_base_obj):
         db_dict = {'kw': keyword, 'stk_kw': is_sticker_kw,
                    'kw_pic_sha': kw_pic_sha}
         result = self.sql_cmd(cmd, db_dict)
-        if len(result) > 0:
+        if result is not None:
             cmd_update = u'UPDATE keyword_dict SET used_count = used_count + 1, last_call = NOW() AT TIME ZONE \'CCT\' WHERE id = %(id)s AND (EXTRACT(EPOCH FROM (NOW() AT TIME ZONE \'CCT\' - last_call)) > 5 OR last_call IS NULL)'
             cmd_update_dict = {'id': result[0][int(kwdict_col.id)]}
             self.sql_cmd(cmd_update, cmd_update_dict)
@@ -101,7 +100,7 @@ class kw_dict_mgr(db_base_obj):
         cmd = u'SELECT * FROM keyword_dict WHERE keyword = %(kw)s AND is_sticker_kw = TRUE ORDER BY id DESC;'
         cmd_dict = {'kw': sticker_id}
         result = self.sql_cmd(cmd, cmd_dict)
-        return result if len(result) > 0 else None
+        return result
 
     def search_keyword_index(self, startIndex, endIndex):
         cmd = u'SELECT * FROM keyword_dict WHERE id >= %(si)s AND id <= %(ei)s ORDER BY id DESC;'
@@ -260,9 +259,12 @@ class kw_dict_mgr(db_base_obj):
 
     @staticmethod
     def list_keyword_recently_called(data):
-        ret = u'\n'.join([u'ID: {} - {} @{}'.format(row[int(kwdict_col.id)], 
-                                                    u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
-                                                    row[int(kwdict_col.last_call)]) for row in data])
+        if data is None:
+            ret = u'沒有紀錄到最近使用的回覆組。'
+        else:
+            ret = u'\n'.join([u'ID: {} - {} @{}'.format(row[int(kwdict_col.id)], 
+                                                        u'(貼圖ID {})'.format(row[int(kwdict_col.keyword)].decode('utf-8')) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
+                                                        row[int(kwdict_col.last_call)]) for row in data])
 
         return ret
 
@@ -349,29 +351,35 @@ class kw_dict_mgr(db_base_obj):
 
     @staticmethod
     def list_keyword_ranking(data):
-        text = u'呼叫次數排行 (前{}名):'.format(len(data))
+        if data is None:
+            text = u'沒有已登記的回覆組。'
+        else:
+            text = u'呼叫次數排行 (前{}名):'.format(len(data))
 
-        for row in data:
-            text += u'\n第{}名 - ID: {} - {} ({}次{})'.format(
-                row[int(kwdict_col.used_rank)],
-                row[int(kwdict_col.id)],
-                u'(貼圖ID {id})'.format(id=row[int(kwdict_col.keyword)]) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
-                row[int(kwdict_col.used_count)],
-                u' - 已固定' if row[int(kwdict_col.deleted)] or row[int(kwdict_col.override)] else '')
+            for row in data:
+                text += u'\n第{}名 - ID: {} - {} ({}次{})'.format(
+                    row[int(kwdict_col.used_rank)],
+                    row[int(kwdict_col.id)],
+                    u'(貼圖ID {id})'.format(id=row[int(kwdict_col.keyword)]) if row[int(kwdict_col.is_sticker_kw)] else row[int(kwdict_col.keyword)].decode('utf-8'), 
+                    row[int(kwdict_col.used_count)],
+                    u' - 已固定' if row[int(kwdict_col.deleted)] or row[int(kwdict_col.override)] else '')
 
         return text
 
     @staticmethod
     def list_user_created_ranking(line_api, data):
-        text = u'回覆組製作排行 (前{}名):'.format(len(data))
+        if data is None:
+            text = u'沒有已登記的使用者製作資料。'
+        else:
+            text = u'回覆組製作排行 (前{}名):'.format(len(data))
 
-        for row in data:
-            profile = line_api.profile(row[1])
-            if profile is None:
-                uname = error.main.line_account_data_not_found()
-            else:
-                uname = profile.display_name
-            text += u'\n\n第{}名 - {}\n製作{}組 | 共使用{}次 | 平均每組被使用{}次'.format(row[0], uname, row[2], row[3], row[4])
+            for row in data:
+                profile = line_api.profile(row[1])
+                if profile is None:
+                    uname = error.main.line_account_data_not_found()
+                else:
+                    uname = profile.display_name
+                text += u'\n\n第{}名 - {}\n製作{}組 | 共使用{}次 | 平均每組被使用{}次'.format(row[0], uname, row[2], row[3], row[4])
 
         return text
 

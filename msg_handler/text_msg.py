@@ -196,7 +196,7 @@ class text_msg(object):
                     results = None
                     text = error.main.incorrect_param(u'參數1', u'ID')
 
-            if results is not None and len(results) > 0:
+            if results is not None:
                 for result in results:
                     line_profile = self.api_proc.profile(result[int(kwdict_col.creator)])
 
@@ -334,26 +334,29 @@ class text_msg(object):
                 sum_data = self.msg_trk.count_sum()
                 tracking_data = message_tracker.entry_detail_list(self.msg_trk.order_by_recorded_msg_count(), limit, self.gb)
 
-                text = u'【訊息流量統計】'
-                text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.recv_txt], sum_data[msg_event_type.recv_stk])
-                text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.recv_txt_repl], sum_data[msg_event_type.recv_stk_repl])
-                text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.send_txt], sum_data[msg_event_type.send_stk])
+                if sum_data is not None:
+                    text = u'【訊息流量統計】'
+                    text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.recv_txt], sum_data[msg_event_type.recv_stk])
+                    text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.recv_txt_repl], sum_data[msg_event_type.recv_stk_repl])
+                    text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(sum_data[msg_event_type.send_txt], sum_data[msg_event_type.send_stk])
 
-                text += u'\n\n【群組訊息統計資料 - 前{}名】\n'.format(limit)
-                text += tracking_data['limited']
-                text += u'\n\n完整資訊URL: {}'.format(self.webpage_generator.rec_info(tracking_data['full']))
+                    text += u'\n\n【群組訊息統計資料 - 前{}名】\n'.format(limit)
+                    text += tracking_data['limited']
+                    text += u'\n\n完整資訊URL: {}'.format(self.webpage_generator.rec_info(tracking_data['full']))
+                else:
+                    text = u'沒有訊息量追蹤紀錄。'
             elif category == 'KW':
                 kwpct = self.kwd.row_count()
 
-                user_list_top = self.kwd.user_sort_by_created_pair()[0]
+                user_list = self.kwd.user_sort_by_created_pair()
+                user_list_top = None if user_list is None else user_list[0]
                 line_profile = self.api_proc.profile(user_list_top[0])
                 
                 limit = 10
 
                 first = self.kwd.most_used()
                 last = self.kwd.least_used()
-                recently_called_data = self.kwd.recently_called(limit)
-                last_count = len(last)
+                last_count = 0 if last is None else len(last)
 
                 text = u'【回覆組相關統計資料】'
                 text += u'\n\n已使用回覆組【{}】次'.format(self.kwd.used_count_sum())
@@ -367,25 +370,34 @@ class text_msg(object):
                     self.kwd.sticker_keyword_count(True),
                     self.kwd.picture_reply_count(True))
                 
-                text += u'\n\n製作最多回覆組的LINE使用者ID:\n{}'.format(user_list_top[0])
-                text += u'\n製作最多回覆組的LINE使用者:\n{}【{}組 - {:.2%}】'.format(
-                    error.main.line_account_data_not_found() if line_profile is None else line_profile.display_name,
-                    user_list_top[1],
-                    user_list_top[1] / float(kwpct))
+                if user_list_top is None:
+                    text += u'\n\n製作最多回覆組的LINE使用者ID:\n{}'.format(user_list_top[0])
+                    text += u'\n製作最多回覆組的LINE使用者:\n{}【{}組 - {:.2%}】'.format(
+                        error.main.line_account_data_not_found() if line_profile is None else line_profile.display_name,
+                        user_list_top[1],
+                        user_list_top[1] / float(kwpct))
+                else:
+                    text += u'查無LINE使用者回覆組製作資料。'
 
-                text += u'\n\n使用次數最多的回覆組【{}次，{}組】:\n'.format(first[0][int(kwdict_col.used_count)], len(first))
-                text += u'\n'.join([u'ID: {} - {}'.format(entry[int(kwdict_col.id)],
-                                                         u'(貼圖ID {})'.format(entry[int(kwdict_col.keyword)].decode('utf-8')) if entry[int(kwdict_col.is_sticker_kw)] else entry[int(kwdict_col.keyword)].decode('utf-8')) for entry in first[0 : limit - 1]])
-                
-                text += u'\n\n使用次數最少的回覆組【{}次，{}組】:\n'.format(last[0][int(kwdict_col.used_count)], len(last))
-                text += u'\n'.join([u'ID: {} - {}'.format(entry[int(kwdict_col.id)],
-                                                         u'(貼圖ID {})'.format(entry[int(kwdict_col.keyword)].decode('utf-8')) if entry[int(kwdict_col.is_sticker_kw)] else entry[int(kwdict_col.keyword)].decode('utf-8')) for entry in last[0 : limit - 1]])
-                
+                if first is not None:
+                    text += u'\n\n使用次數最多的回覆組【{}次，{}組】:\n'.format(first[0][int(kwdict_col.used_count)], len(first))
+                    text += u'\n'.join([u'ID: {} - {}'.format(entry[int(kwdict_col.id)],
+                                                             u'(貼圖ID {})'.format(entry[int(kwdict_col.keyword)].decode('utf-8')) if entry[int(kwdict_col.is_sticker_kw)] else entry[int(kwdict_col.keyword)].decode('utf-8')) for entry in first[0 : limit - 1]])
+                else:
+                    text += u'使用次數查詢失敗(最多)。'
+
+                if last is not None:
+                    text += u'\n\n使用次數最少的回覆組【{}次，{}組】:\n'.format(last[0][int(kwdict_col.used_count)], len(last))
+                    text += u'\n'.join([u'ID: {} - {}'.format(entry[int(kwdict_col.id)],
+                                                             u'(貼圖ID {})'.format(entry[int(kwdict_col.keyword)].decode('utf-8')) if entry[int(kwdict_col.is_sticker_kw)] else entry[int(kwdict_col.keyword)].decode('utf-8')) for entry in last[0 : limit - 1]])
+                else:
+                    text += u'使用次數查詢失敗(最少)。'
+
                 if last_count - limit > 0:
                     text += u'\n...(還有{}組)'.format(last_count - limit)
 
                 text += u'\n\n最近被使用的{}組回覆組:\n'.format(limit)
-                text += kw_dict_mgr.list_keyword_recently_called(recently_called_data)
+                text += kw_dict_mgr.list_keyword_recently_called(self.kwd.recently_called(limit))
             elif category == 'SYS':
                 global game_object
 
@@ -552,7 +564,7 @@ class text_msg(object):
             else:
                 if line_profile is not None:
                     kwid_arr = self.kwd.user_created_id_array(uid)
-                    if len(kwid_arr) < 1:
+                    if kwid_arr is None:
                         kwid_arr = [u'無']
 
                     text = u'使用者ID: {}\n'.format(uid)

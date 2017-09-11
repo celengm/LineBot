@@ -74,16 +74,15 @@ class message_tracker(db_base_obj):
             cmd = u'SELECT * FROM msg_track WHERE cid = %(cid)s'
             cmd_dict = {'cid': cid}
             result = self.sql_cmd(cmd, cmd_dict)
-            if len(result) > 0:
-                return result[0]
-            else:
-                return None
+            return None if result is None else result[0]
 
     def count_sum(self):
         results = defaultdict(int)
 
         cmd = u'SELECT MAX(last_msg_recv), SUM(text_msg), SUM(text_msg_trig), SUM(stk_msg), SUM(stk_msg_trig), SUM(text_rep), SUM(stk_rep), MAX(last_msg_recv), SUM(pic_msg) FROM msg_track'
         sql_result = self.sql_cmd_only(cmd)
+        if sql_result is None:
+            return None
         sql_result = sql_result[0]
         results[msg_event_type.recv_txt] = sql_result[int(msg_track_col.text_msg)]
         results[msg_event_type.recv_txt_repl] = sql_result[int(msg_track_col.text_msg_trig)]
@@ -107,28 +106,31 @@ class message_tracker(db_base_obj):
 
     @staticmethod
     def entry_detail(data, group_ban=None):
-        gid = data[int(msg_track_col.cid)]
+        if data is not None:
+            gid = data[int(msg_track_col.cid)]
 
-        if group_ban is not None:
-            if gid.startswith('U'):
-                activation_status = u'私訊頻道'
-            else:
-                group_data = group_ban.get_group_by_id(gid)
-                if group_data is not None:
-                    activation_status = u'停用回覆' if group_data[int(gb_col.silence)] else u'啟用回覆'
+            if group_ban is not None:
+                if gid.startswith('U'):
+                    activation_status = u'私訊頻道'
                 else:
-                    activation_status = u'啟用回覆'
-        else:
-            activation_status = u'啟用回覆'
+                    group_data = group_ban.get_group_by_id(gid)
+                    if group_data is not None:
+                        activation_status = u'停用回覆' if group_data[int(gb_col.silence)] else u'啟用回覆'
+                    else:
+                        activation_status = u'啟用回覆'
+            else:
+                activation_status = u'啟用回覆'
 
-        text = u'群組/房間ID: {} 【{}】'.format(gid, activation_status)
-        text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息 | {}則圖片訊息'.format(data[int(msg_track_col.text_msg)], 
+            text = u'群組/房間ID: {} 【{}】'.format(gid, activation_status)
+            text += u'\n收到(無對應回覆組): {}則文字訊息 | {}則貼圖訊息 | {}則圖片訊息'.format(data[int(msg_track_col.text_msg)], 
                                                                                         data[int(msg_track_col.stk_msg)], 
                                                                                         data[int(msg_track_col.pic_msg)])
-        text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg_trig)], 
-                                                                         data[int(msg_track_col.stk_msg_trig)])
-        text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_rep)], 
-                                                            data[int(msg_track_col.stk_rep)])
+            text += u'\n收到(有對應回覆組): {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_msg_trig)], 
+                                                                             data[int(msg_track_col.stk_msg_trig)])
+            text += u'\n回覆: {}則文字訊息 | {}則貼圖訊息'.format(data[int(msg_track_col.text_rep)], 
+                                                                data[int(msg_track_col.stk_rep)])
+        else:
+            text = u'查無群組資料。'
 
         return text
 
@@ -136,9 +138,9 @@ class message_tracker(db_base_obj):
     def entry_detail_list(data_list, limit=10, group_ban=None):
         """return two object to access by [\'limited\'] and [\'full\']."""
         ret = {'limited': u'', 'full': u''}
-        count = len(data_list)
+        count = 0 if data_list is None else len(data_list)
 
-        if count <= 0:
+        if data_list is None:
             ret['limited'] = error.main.no_result()
         else:
             ret['limited'] = u'\n\n'.join([message_tracker.entry_detail(data, group_ban) for data in data_list[0:limit]])
