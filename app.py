@@ -651,7 +651,9 @@ def intercept_text(event):
 
     print '==========================================='
     print 'From Channel ID \'{}\''.format(line_api_proc.source_channel_id(src))
-    print 'From User ID \'{}\' ({})'.format(uid, user_profile.display_name.encode('utf-8') if user_profile is not None else 'unknown')
+    print 'From User ID \'{}\' ({})'.format(uid, 
+                                            '(Empty)' if user_profile.display_name is None else user_profile.display_name.encode('utf-8')
+                                            if user_profile is not None else 'unknown')
     print 'Message \'{}\''.format(event.message.text.encode('utf-8'))
     print '=================================================================='
 
