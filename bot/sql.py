@@ -26,7 +26,13 @@ class db_query_manager(object):
             else:
                 raise ex
         
-        return result
+        if result is not None:
+            if len(result) > 0:
+                return result
+            else:
+                return None
+        else:
+            return None
 
 
     def close_connection(self):
