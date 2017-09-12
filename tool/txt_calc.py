@@ -34,6 +34,8 @@ class text_calculator(object):
 
             if debug:
                 print result_data.get_debug_text()
+        except Exception as ex:
+            raise ex
 
         print result_data is None
         if result_data is not None:
@@ -45,6 +47,7 @@ class text_calculator(object):
         try:
             start_time = time.time()
 
+            print 'PROC EXEC'
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
