@@ -29,7 +29,7 @@ class text_calculator(object):
             result_data.success = False
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
                 
-            result_data.auto_record_time(start_time)
+            result_data.auto_record_time(self._timeout)
 
             if debug:
                 print result_data.get_debug_text()
