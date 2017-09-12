@@ -26,13 +26,13 @@ class text_calculator(object):
 
             result_data = calc_result_data(text)
             init_time = time.time()
-            calc_proc = self._get_calculate_proc(type_var, (init_time, result_data, debug, self._queue))
             # TODO: try to optimize
             self._process_dict = {
                 calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
                 calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
                 calc_type.polynomial_factorization: Process(target=self._polynomial_factorication, args=(init_time, result_data, debug, self._queue))
             }
+            calc_proc = self._process_dict[type_var]
             calc_proc.start()
 
             result_data = self._queue.get(True, self._timeout)
