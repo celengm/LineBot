@@ -12,44 +12,28 @@ class text_calculator(object):
         self._queue = Queue.Queue()
 
     def basic_calc(self, text, debug=False):
-        result = ''
-        
         if text_calculator.is_non_calc(text):
             return
 
-        try:
-            calc_proc = Process(target=self._exec_calc, args=(text, self._queue))
-            calc_proc.start()
-            start_time = time.time()
+        calc_proc = Process(target=self._exec_calc, args=(text, self._queue))
 
-            print 'CODE 6'
-            self._exec_calc(text)
-            print 'CODE 7'
-            result = result_queue.get(True, 15.0)
-            print 'CODE 8'
-            calc_proc.join()
-            print 'CODE 9'
+        start_time = time.time()
 
-            end_time = time.time()
+        calc_proc.start()
+        result = result_queue.get(True, 15.0)
+        calc_proc.join()
 
-            if isinstance(result, (float, int, long)):
-                if len(text_calculator.remove_non_digit(text)) < 10:
-                    if text != str(result):
-                        return (result, end_time - start_time)
-                else:
+        end_time = time.time()
+
+        if isinstance(result, (float, int, long)):
+            if len(text_calculator.remove_non_digit(text)) < 10:
+                if text != str(result):
                     return (result, end_time - start_time)
-            elif debug:
-                text_calculator.print_debug_info(text, result)
-        except Queue.Empty:
-            end_time = time.time()
-            if debug:
-                text_calculator.print_debug_info(text, result)
-            result = u'Calculation Timeout.'
-            return (result, end_time - start_time)
-        except Exception as ex:
-            if debug:
-                text_calculator.print_debug_info(text, result, ex)
-            return 
+            else:
+                return (result, end_time - start_time)
+        elif debug:
+            text_calculator.print_debug_info(text, result)
+        
 
     def sympy_calc(self, text, return_on_error=False, debug=False):
         result = ''
@@ -88,8 +72,16 @@ class text_calculator(object):
                 exec(text)
 
             queue.put(result)
+
+        except Queue.Empty:
+            if debug:
+                text_calculator.print_debug_info(text, result)
+            queue.put(u'Calculation Timeout.')
+
         except Exception as ex:
-            raise ex
+            if debug:
+                text_calculator.print_debug_info(text, result, ex)
+            queue.put(None)
 
     @staticmethod
     def _polynomial_factorication(text):
