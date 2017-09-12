@@ -100,4 +100,4 @@ class error(object):
         @staticmethod
         def overflow(org_text=None):
             return u'發生溢位。請嘗試拆解算式以後重新計算。{}'.format(
-                u'' if org_text is None else u'\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
+                u'' if org_text is None else u'\n原始字串: {}'.format(org_text))

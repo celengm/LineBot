@@ -28,7 +28,7 @@ class text_calculator(object):
         except Queue.Empty:
             print 'MAIN TIMEOUT'
             result_data.success = False
-            result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout, text)
+            result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
                 
             result_data.auto_record_time(start_time)
 
@@ -78,7 +78,7 @@ class text_calculator(object):
 
         except OverflowError:
             result_data.success = False
-            result_data.calc_result = error.string_calculator.overflow(text)
+            result_data.calc_result = error.string_calculator.overflow()
                 
             result_data.auto_record_time(start_time)
 
