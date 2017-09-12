@@ -24,6 +24,7 @@ class text_calculator(object):
                 exec('result={}'.format(text))
             else:
                 exec(text)
+            print result
 
             end_time = time.time()
             signal.alarm(0)
