@@ -22,7 +22,7 @@ class db_query_manager(object):
 
     def sql_cmd(self, cmd, dict):
         apply_result = self.pool.apply(self._query_worker, (cmd, dict))
-        return apply_result.get()
+        return apply_result
 
     def _query_worker(self, cmd, dict):
         try:
