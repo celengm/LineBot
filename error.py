@@ -95,9 +95,9 @@ class error(object):
         def calculation_timeout(timeout_sec, org_text=None):
             return u'因計算超時({}秒)，故終止運算。請嘗試拆解算式以後重新計算。{}'.format(
                 timeout_sec,
-                '' if org_text is None else '\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
+                u'' if org_text is None else u'\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
 
         @staticmethod
         def overflow(org_text=None):
             return u'發生溢位。請嘗試拆解算式以後重新計算。{}'.format(
-                '' if org_text is None else '\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
+                u'' if org_text is None else u'\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
