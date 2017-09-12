@@ -129,7 +129,7 @@ game_executor = msg_handler.game_msg(game_data, line_api)
 img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path, kwd)
 
 # Tool instance initialization
-str_calc = txt_calc.text_calculator()
+str_calc = txt_calc.text_calculator(1.0)
 
 # function for create tmp dir for download content
 def make_tmp_dir():

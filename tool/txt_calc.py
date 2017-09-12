@@ -8,9 +8,9 @@ from multiprocessing import Process, Queue as MultiQueue
 import Queue
 
 class text_calculator(object):
-    def __init__(self):
+    def __init__(self, timeout=15.0):
         self._queue = MultiQueue()
-        self._timeout = 15.0
+        self._timeout = timeout
 
     def basic_calc(self, text, debug=False):
         if text_calculator.is_non_calc(text):
