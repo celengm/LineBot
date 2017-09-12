@@ -8,7 +8,7 @@ from multiprocessing import Process
 import Queue
 
 class text_calculator(object):
-    def __init__():
+    def __init__(self):
         self._queue = Queue.Queue()
 
     def basic_calc(self, text, debug=False):
