@@ -18,11 +18,8 @@ class text_calculator(object):
             return
 
         try:
-            print 'CODE 3'
             calc_proc = Process(target=self._exec_calc, args=(text, self._queue))
-            print 'CODE 4'
             calc_proc.start()
-            print 'CODE 5'
             start_time = time.time()
 
             print 'CODE 6'
@@ -84,12 +81,15 @@ class text_calculator(object):
             return error.string_calculator.error_on_calculating(ex) if return_on_error else None
 
     def _exec_calc(self, text, queue):
-        if 'result=' not in text:
-            exec('result={}'.format(text))
-        else:
-            exec(text) 
+        try:
+            if 'result=' not in text:
+                exec('result={}'.format(text))
+            else:
+                exec(text)
 
-        queue.put(result)
+            queue.put(result)
+        except Exception as ex:
+            raise ex
 
     @staticmethod
     def _polynomial_factorication(text):
