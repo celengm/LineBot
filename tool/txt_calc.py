@@ -4,12 +4,11 @@ from error import error
 from math import *
 import sympy
 import time
-from multiprocessing import Process
-import Queue
+from multiprocessing import Process, Queue
 
 class text_calculator(object):
     def __init__(self):
-        self._queue = Queue.Queue()
+        self._queue = Queue()
 
     def basic_calc(self, text, debug=False):
         if text_calculator.is_non_calc(text):
@@ -79,6 +78,7 @@ class text_calculator(object):
             print 'CODE 12'
             queue.put(result)
             print 'CODE 13'
+            print queue
 
         except Queue.Empty:
             if debug:
