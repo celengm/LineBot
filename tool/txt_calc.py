@@ -8,21 +8,18 @@ from multiprocessing import Process
 import Queue
 
 class text_calculator(object):
-    @staticmethod
-    def basic_calc(text, debug=False):
+    def __init__():
+        self._queue = Queue.Queue()
+
+    def basic_calc(self, text, debug=False):
         result = ''
-        print 'CODE 1'
         
         if text_calculator.is_non_calc(text):
-            print 'CODE 1-1'
             return
 
-        print 'CODE 2'
-
         try:
-            result_queue = Queue.Queue()
             print 'CODE 3'
-            calc_proc = Process(target=self._exec_calc, args=(text, result_queue))
+            calc_proc = Process(target=self._exec_calc, args=(text, self._queue))
             print 'CODE 4'
             calc_proc.start()
             print 'CODE 5'
@@ -57,8 +54,7 @@ class text_calculator(object):
                 text_calculator.print_debug_info(text, result, ex)
             return 
 
-    @staticmethod
-    def sympy_calc(text, return_on_error=False, debug=False):
+    def sympy_calc(self, text, return_on_error=False, debug=False):
         result = ''
         if text_calculator.is_non_calc(text):
             return
@@ -87,7 +83,7 @@ class text_calculator(object):
                 text_calculator.print_debug_info(text, result, ex)
             return error.string_calculator.error_on_calculating(ex) if return_on_error else None
 
-    def _exec_calc(text, queue):
+    def _exec_calc(self, text, queue):
         if 'result=' not in text:
             exec('result={}'.format(text))
         else:

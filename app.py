@@ -111,7 +111,6 @@ if imgur_client_secret is None:
     sys.exit(1)
 imgur_api = imgur_proc(ImgurClient(imgur_client_id, imgur_client_secret))
 
-
 # Oxford Dictionary Environment initialization
 oxford_dict_obj = msg_handler.oxford_dict('en')
 
@@ -128,6 +127,9 @@ command_executor = msg_handler.text_msg(app, line_api, kwd, gb, msg_track,
 helper_executor = msg_handler.helper(sys_data)
 game_executor = msg_handler.game_msg(game_data, line_api)
 img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path, kwd)
+
+# Tool instance initialization
+str_calc = txt_calc.text_calculator()
 
 # function for create tmp dir for download content
 def make_tmp_dir():
@@ -397,7 +399,7 @@ def handle_text_message(event):
                 api_reply(token, TextSendMessage(text=text), src)
                 return
             else:
-                calc_result = txt_calc.text_calculator.basic_calc(text, sys_data.calc_debug)
+                calc_result = str_calc.basic_calc(text, sys_data.calc_debug)
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
