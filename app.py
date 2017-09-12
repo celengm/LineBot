@@ -405,10 +405,10 @@ def handle_text_message(event):
 
                     result_str = calc_result.get_basic_text()
 
-                    if result // 10**99 < 10:
-                        text = result_str
-                    else:
+                    if calc_result.over_length:
                         text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
+                    else:
+                        text = result_str
 
                     api_reply(token, TextSendMessage(text=text), src)
                     return
