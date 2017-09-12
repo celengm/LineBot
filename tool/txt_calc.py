@@ -37,7 +37,7 @@ class text_calculator(object):
 
         print result_data is None
         if result_data is not None:
-            print result_data.get_basic_text()
+            print result_data.get_basic_text().encode('utf-8')
         return None if result_data is None else result_data
 
     def _exec_calc(self, result_data, debug, queue):
