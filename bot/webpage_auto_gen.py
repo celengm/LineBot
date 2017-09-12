@@ -31,7 +31,8 @@ class webpage(object):
             err_detail += u'頻道ID: {}'.format(channel_id)
             err_detail += u'\n\n'
             err_detail += decoded_traceback
-
+            
+            print err_sum.encode('utf-8')
             print err_detail.encode('utf-8')
             self._page_content[self._error_route][timestamp] = err_detail
 
