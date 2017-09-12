@@ -17,8 +17,9 @@ class text_calculator(object):
             return
         
         result_data = calc_result_data(text)
+        init_time = time.time()
         try:
-            calc_proc = Process(target=self._exec_calc, args=(result_data, debug, self._queue))
+            calc_proc = Process(target=self._exec_calc, args=(init_time, result_data, debug, self._queue))
 
             calc_proc.start()
             print 'MAIN'
@@ -29,7 +30,7 @@ class text_calculator(object):
             result_data.success = False
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
                 
-            result_data.auto_record_time(self._timeout)
+            result_data.auto_record_time(init_time)
 
             if debug:
                 print result_data.get_debug_text()
@@ -41,10 +42,10 @@ class text_calculator(object):
             print result_data.get_basic_text().encode('utf-8')
         return None if result_data is None else result_data
 
-    def _exec_calc(self, result_data, debug, queue):
+    def _exec_calc(self, init_time, result_data, debug, queue):
         text = result_data.formula_str
         try:
-            start_time = time.time()
+            start_time = init_time
 
             print 'PROC EXEC'
             if 'result=' not in text:
