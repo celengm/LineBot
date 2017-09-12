@@ -12,15 +12,16 @@ class text_calculator(object):
         self._queue = MultiQueue()
         self._timeout = timeout
 
-    def basic_calc(self, text, debug=False):
+    def calculate(self, text, debug=False, type_var=calc_type.normal):
         if text_calculator.is_non_calc(text):
             return
         
-        result_data = calc_result_data(text)
-        init_time = time.time()
-        calc_proc = Process(target=self._exec_calc, args=(init_time, result_data, debug, self._queue))
-        calc_proc.start()
         try:
+            result_data = calc_result_data(text)
+            init_time = time.time()
+            calc_proc = self._get_calculate_proc(type_var)
+            calc_proc.start()
+
             result_data = self._queue.get(True, self._timeout)
         except Queue.Empty:
             calc_proc.terminate()
@@ -37,7 +38,17 @@ class text_calculator(object):
 
         return None if result_data is None else result_data
 
-    def _exec_calc(self, init_time, result_data, debug, queue):
+    def _get_calculate_proc(self, type_var):
+        process_dict = {
+            calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
+            calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
+            calc_type.polynomial_factorization: Process(target=self._polynomial_factorication, args=(init_time, result_data, debug, self._queue))
+        }
+
+        return process_dict.get(type_var,
+                                Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)))
+
+    def _basic_calc_proc(self, init_time, result_data, debug, queue):
         text = result_data.formula_str
         try:
             start_time = init_time
@@ -93,9 +104,37 @@ class text_calculator(object):
             else:
                 queue.put(None)
 
-    @staticmethod
-    def _polynomial_factorication(text):
+    def _algebraic_equations(self, init_time, result_data, debug, queue):
         pass
+
+    @staticmethod
+    def _polynomial_factorication(self, init_time, result_data, debug, queue):
+        text = text_calculator.formula_to_py(result_data.formula_str)
+        try:
+            start_time = init_time
+            exec('result = sympy.factor(text)')
+            result_data.auto_record_time(start_time)
+
+            result_data.success = True
+
+            start_time = time.time()
+            str_calc_result = str(result)
+            result_data.calc_result = str_calc_result
+            result_data.auto_record_time(start_time)
+
+            queue.put(result_data)
+
+        except Exception as ex:
+            result_data.success = False
+            result_data.calc_result = ex.message
+                
+            result_data.auto_record_time(start_time)
+
+            if debug:
+                print result_data.get_debug_text()
+                queue.put(result_data)
+            else:
+                queue.put(None)
 
     @staticmethod
     def remove_non_digit(text):
@@ -111,7 +150,7 @@ class text_calculator(object):
 
     @staticmethod
     def formula_to_py(text):
-        regex = ur"([\d.]*)([\d]*[\w]*)([+\-*/]{1})"
+        regex = ur"([\d.]*)([\d]*[\w]*)([+\-*/]?)"
         
         def add_star(match):
             if match.group(1) != '' and match.group(2) != '':
@@ -129,7 +168,7 @@ class text_calculator(object):
             return calc_type.polynomial_factorization
 
 class calc_type(Enum):
-    unknown = 0
+    normal = 0
     polynomial_factorization = 1
     algebraic_equations = 2
 
@@ -152,7 +191,10 @@ class calc_result_data(object):
 
     @calc_result.setter
     def calc_result(self, value):
-        self._calc_result = value
+        if isinstance(value, (str, unicode)):
+            self._calc_result = value
+        else:
+            raise Exception('Calculate result should be string or unicode.')
 
     @property
     def calc_time(self):

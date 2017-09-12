@@ -381,6 +381,22 @@ def handle_text_message(event):
                     api_reply(token, TextSendMessage(text=text), src)
                 else:
                     sys_data.game_cmd_dict[cmd].count -= 1
+            elif head == 'FX':
+                # TODO: temp, add analysis
+                calc_result = str_calc.calculate(cmd, sys_data.calc_debug, txt_calc.calc_type.polynomial_factorization)
+                if calc_result is not None:
+                    sys_data.helper_cmd_dict['CALC'].count += 1
+
+                    result_str = calc_result.get_basic_text()
+
+                    if calc_result.over_length:
+                        text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
+                    else:
+                        text = result_str
+                else:
+                    text = u'No calculate result.'
+
+                api_reply(token, TextSendMessage(text=text), src)
 
         rps_obj = game_data.get_rps(line_api_proc.source_channel_id(src))
         if rps_obj is not None:
@@ -399,7 +415,7 @@ def handle_text_message(event):
                 api_reply(token, TextSendMessage(text=text), src)
                 return
             else:
-                calc_result = str_calc.basic_calc(text, sys_data.calc_debug)
+                calc_result = str_calc.calculate(text, sys_data.calc_debug)
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
