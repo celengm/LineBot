@@ -18,12 +18,13 @@ class text_calculator(object):
         
         result_data = calc_result_data(text)
         init_time = time.time()
+        calc_proc = Process(target=self._exec_calc, args=(init_time, result_data, debug, self._queue))
+        calc_proc.start()
         try:
-            calc_proc = Process(target=self._exec_calc, args=(init_time, result_data, debug, self._queue))
-
-            calc_proc.start()
             result_data = self._queue.get(True, self._timeout)
         except Queue.Empty:
+            calc_proc.terminate()
+
             result_data.success = False
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
                 
