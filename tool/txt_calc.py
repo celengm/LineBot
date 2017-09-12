@@ -4,12 +4,12 @@ from error import error
 from math import *
 import sympy
 import time
-import signal
+from multiprocessing import Process
+import Queue
 
 class text_calculator(object):
     @staticmethod
-    def basic_calc(text, debug=False, **kwargs):
-        timeout = kwargs.get('timeout', 10)
+    def basic_calc(text, debug=False):
         result = ''
         print 'CODE 1'
         
@@ -20,21 +20,23 @@ class text_calculator(object):
         print 'CODE 2'
 
         try:
+            result_queue = Queue.Queue()
             print 'CODE 3'
-            signal.signal(signal.SIGALRM, text_calculator.timeout_handle)
+            calc_proc = Process(target=self._exec_calc, args=(text, result_queue))
             print 'CODE 4'
-            signal.alarm(timeout)
+            calc_proc.start()
             print 'CODE 5'
             start_time = time.time()
 
             print 'CODE 6'
-            if 'result=' not in text:
-                exec('result={}'.format(text))
-            else:
-                exec(text)
+            self._exec_calc(text)
+            print 'CODE 7'
+            result = result_queue.get(True, 15.0)
+            print 'CODE 8'
+            calc_proc.join()
+            print 'CODE 9'
 
             end_time = time.time()
-            signal.alarm(0)
 
             if isinstance(result, (float, int, long)):
                 if len(text_calculator.remove_non_digit(text)) < 10:
@@ -44,6 +46,12 @@ class text_calculator(object):
                     return (result, end_time - start_time)
             elif debug:
                 text_calculator.print_debug_info(text, result)
+        except Queue.Empty:
+            end_time = time.time()
+            if debug:
+                text_calculator.print_debug_info(text, result)
+            result = u'Calculation Timeout.'
+            return (result, end_time - start_time)
         except Exception as ex:
             if debug:
                 text_calculator.print_debug_info(text, result, ex)
@@ -78,6 +86,14 @@ class text_calculator(object):
             if debug:
                 text_calculator.print_debug_info(text, result, ex)
             return error.string_calculator.error_on_calculating(ex) if return_on_error else None
+
+    def _exec_calc(text, queue):
+        if 'result=' not in text:
+            exec('result={}'.format(text))
+        else:
+            exec(text) 
+
+        queue.put(result)
 
     @staticmethod
     def _polynomial_factorication(text):
@@ -125,12 +141,6 @@ class text_calculator(object):
             return calc_type.algebraic_equations
         else:
             return calc_type.polynomial_factorization
-
-    @staticmethod
-    def timeout_handle(signum, frame):
-        print 'CODE 000'
-        error_text = 'Calculation Timeout.'
-        raise Exception(error_text)
 
 class calc_type(Enum):
     unknown = 0
