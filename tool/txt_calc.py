@@ -9,7 +9,7 @@ import signal
 class text_calculator(object):
     @staticmethod
     def basic_calc(text, debug=False, **kwargs):
-        timeout = kwargs.get(kwargs['timeout'], 10)
+        timeout = kwargs.get('timeout', 10)
         result = ''
         
         if text_calculator.is_non_calc(text):
