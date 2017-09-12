@@ -16,45 +16,26 @@ class text_calculator(object):
         if text_calculator.is_non_calc(text):
             return
 
-        calc_proc = Process(target=self._exec_calc, args=(text, debug, self._queue))
-
-        calc_proc.start()
-        calc_proc.join()
-        result = self._queue.get(True, self._timeout)
-
-        return None if result is None else result
-
-    def sympy_calc(self, text, return_on_error=False, debug=False):
-        result = ''
-        if text_calculator.is_non_calc(text):
-            return
         try:
-            start_time = time.time()
+            result_data = calc_result_data(text)
+            calc_proc = Process(target=self._exec_calc, args=(result_data, debug, self._queue))
 
-            if 'result=' not in text:
-                exec('result={}'.format(text))
-            else:
-                exec(text)
+            calc_proc.start()
+            calc_proc.join()
+            result_data = self._queue.get(True, self._timeout)
+        except Queue.Empty:
+            result_data.success = False
+            result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout, text)
+                
+            result_data.auto_record_time(start_time)
 
-            end_time = time.time()
-             
-            if isinstance(result, (float, int, long)):
-                if len(text_calculator.remove_non_digit(text)) < 10:
-                    if text != str(result):
-                        return (result, end_time - start_time)
-                else:
-                    return (result, end_time - start_time)
-            else:
-                if debug:
-                    text_calculator.print_debug_info(text, result)
-                return  error.string_calculator.result_is_not_numeric(text) if return_on_error else None
-        except Exception as ex:
             if debug:
-                text_calculator.print_debug_info(text, result, ex)
-            return error.string_calculator.error_on_calculating(ex) if return_on_error else None
+                print result_data.get_debug_text()
 
-    def _exec_calc(self, text, debug, queue):
-        result_data = calc_result_data(text)
+        return None if result_data is None else result_data
+
+    def _exec_calc(self, result_data, debug, queue):
+        text = result_data.formula_str
         try:
             start_time = time.time()
 
@@ -84,17 +65,6 @@ class text_calculator(object):
                 result_data.auto_record_time(start_time)
             else:
                 result_data.success = False
-
-            queue.put(result_data)
-
-        except Queue.Empty:
-            result_data.success = False
-            result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout, text)
-                
-            result_data.auto_record_time(start_time)
-
-            if debug:
-                print result_data.get_debug_text()
 
             queue.put(result_data)
 
