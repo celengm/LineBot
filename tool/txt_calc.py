@@ -11,20 +11,27 @@ class text_calculator(object):
     def basic_calc(text, debug=False, **kwargs):
         timeout = kwargs.get('timeout', 10)
         result = ''
+        print 'CODE 1'
         
         if text_calculator.is_non_calc(text):
+            print 'CODE 1-1'
             return
 
+        print 'CODE 2'
+
         try:
+            print 'CODE 3'
             signal.signal(signal.SIGALRM, text_calculator.timeout_handle)
+            print 'CODE 4'
             signal.alarm(timeout)
+            print 'CODE 5'
             start_time = time.time()
 
+            print 'CODE 6'
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
                 exec(text)
-            print result
 
             end_time = time.time()
             signal.alarm(0)
@@ -121,6 +128,7 @@ class text_calculator(object):
 
     @staticmethod
     def timeout_handle(signum, frame):
+        print 'CODE 000'
         error_text = 'Calculation Timeout.'
         raise Exception(error_text)
 
