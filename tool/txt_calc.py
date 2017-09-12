@@ -21,7 +21,6 @@ class text_calculator(object):
             calc_proc = Process(target=self._exec_calc, args=(result_data, debug, self._queue))
 
             calc_proc.start()
-            calc_proc.join()
             print 'MAIN'
             result_data = self._queue.get(True, self._timeout)
             print 'MAIN COMPLETE'
@@ -202,11 +201,11 @@ class calc_result_data(object):
                 self._type_cast_time = time.time() - start_time
 
     def get_basic_text(self):
-        return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}秒\n轉型時間:\n{}秒'.format(
+        return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n轉型時間:\n{}'.format(
             self._formula_str,
             self._calc_result,
-            u'(未執行)' if self._calc_time == -1.0 else self._calc_time,
-            u'(未執行)' if self._type_cast_time == -1.0 else self._type_cast_time)
+            u'(未執行)' if self._calc_time == -1.0 else u'{:f}秒'.format(self._calc_time),
+            u'(未執行)' if self._type_cast_time == -1.0 else u'{:f}秒'.format(self._type_cast_time))
 
     def get_debug_text(self):
         return u'計算{}\n\n{}'.format(self.get_basic_text())
