@@ -15,9 +15,9 @@ class text_calculator(object):
     def basic_calc(self, text, debug=False):
         if text_calculator.is_non_calc(text):
             return
-
+        
+        result_data = calc_result_data(text)
         try:
-            result_data = calc_result_data(text)
             calc_proc = Process(target=self._exec_calc, args=(result_data, debug, self._queue))
 
             calc_proc.start()
@@ -36,7 +36,8 @@ class text_calculator(object):
                 print result_data.get_debug_text()
 
         print result_data is None
-        print result_data.get_basic_text()
+        if result_data is not None:
+            print result_data.get_basic_text()
         return None if result_data is None else result_data
 
     def _exec_calc(self, result_data, debug, queue):
