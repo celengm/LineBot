@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
-from error import error
-from math import *
-import sympy
-import time
 from multiprocessing import Process, Queue as MultiQueue
 import Queue
+
+from enum import Enum
+import re
+import time
+
+from error import error
+
+from math import *
+import sympy
 
 class calc_type(Enum):
     normal = 0
