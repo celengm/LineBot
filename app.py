@@ -16,7 +16,7 @@ from urlparse import urlparse
 from datetime import datetime
 from error import error
 from flask import Flask, request, url_for
-from multiprocessing.dummy import Pool as ThreadPool
+import threading
 
 # import for Oxford Dictionary
 import httplib
@@ -150,17 +150,8 @@ def callback():
 
     # handle webhook body
     try:
-        # Single Thread
-        #handler.handle(body, signature)
-
-        # Multi Thread - 1
-        import threading
         HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
         HandleThread.start()
-        
-        # Multi Thread - 2
-
-        #thread.start_new_thread(handler.handle, (body, signature))
     except exceptions.InvalidSignatureError:
         abort(400)
 

@@ -80,3 +80,19 @@ class error(object):
         @staticmethod
         def miscellaneous(content):
             return u'{}\n\n小水母使用說明: {}'.format(content, error.user_manual_url)
+
+    class string_calculator(object):
+        @staticmethod
+        def result_is_not_numeric(org_text=None):
+            return u'計算結果為非數字型態，請重新檢查輸入的算式是否正確。{}'.format(
+                '' if org_text is None else '\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
+
+        @staticmethod
+        def error_on_calculating(ex):
+            return u'發生錯誤，計算失敗。\n錯誤訊息: {}'.format(ex.message)
+
+        @staticmethod
+        def calculation_timeout(timeout_sec, org_text=None):
+            return u'因計算超時({}秒)，故終止運算。請嘗試拆解算式以後重新計算。{}'.format(
+                timeout_sec,
+                '' if org_text is None else '\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))

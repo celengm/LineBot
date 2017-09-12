@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
+from enum import Enum
+from error import error
 from math import *
 import sympy
-
 import time
+import signal
 
 class text_calculator(object):
     @staticmethod
-    def basic_calc(text, debug=False):
+    def basic_calc(text, timeout=10, debug=False):
         result = ''
+        
         if text_calculator.is_non_calc(text):
             return
+
         try:
+            signal.signal(signal.SIGALRM, text_calculator.timeout_handle)
+            signal.alarm(timeout)
             start_time = time.time()
 
             if 'result=' not in text:
@@ -19,6 +25,7 @@ class text_calculator(object):
                 exec(text)
 
             end_time = time.time()
+            signal.alarm(0)
 
             if isinstance(result, (float, int, long)):
                 if len(text_calculator.remove_non_digit(text)) < 10:
@@ -26,7 +33,6 @@ class text_calculator(object):
                         return (result, end_time - start_time)
                 else:
                     return (result, end_time - start_time)
-                
             elif debug:
                 text_calculator.print_debug_info(text, result)
         except Exception as ex:
@@ -35,7 +41,7 @@ class text_calculator(object):
             return 
 
     @staticmethod
-    def sympy_calc(text, debug=False):
+    def sympy_calc(text, return_on_error=False, debug=False):
         result = ''
         if text_calculator.is_non_calc(text):
             return
@@ -48,20 +54,25 @@ class text_calculator(object):
                 exec(text)
 
             end_time = time.time()
-
+             
             if isinstance(result, (float, int, long)):
                 if len(text_calculator.remove_non_digit(text)) < 10:
                     if text != str(result):
                         return (result, end_time - start_time)
                 else:
                     return (result, end_time - start_time)
-                
-            elif debug:
-                text_calculator.print_debug_info(text, result)
+            else:
+                if debug:
+                    text_calculator.print_debug_info(text, result)
+                return  error.string_calculator.result_is_not_numeric(text) if return_on_error else None
         except Exception as ex:
             if debug:
                 text_calculator.print_debug_info(text, result, ex)
-            return 
+            return error.string_calculator.error_on_calculating(ex) if return_on_error else None
+
+    @staticmethod
+    def _polynomial_factorication(text):
+        pass
 
     @staticmethod
     def remove_non_digit(text):
@@ -98,3 +109,20 @@ class text_calculator(object):
         print str(output).encode('utf-8')
         print 'Error:'
         print '' if ex is None else ex
+
+    @staticmethod
+    def calculate_type(text):
+        if '=' in text:
+            return calc_type.algebraic_equations
+        else:
+            return calc_type.polynomial_factorization
+
+    @staticmethod
+    def timeout_handle(signum, frame):
+        error_text = 'Calculation Timeout.'
+        raise Exception(error_text)
+
+class calc_type(Enum):
+    unknown = 0
+    polynomial_factorization = 1
+    algebraic_equations = 2
