@@ -151,12 +151,12 @@ def callback():
     # handle webhook body
     try:
         # Single Thread
-        handler.handle(body, signature)
+        #handler.handle(body, signature)
 
         # Multi Thread - 1
-        #import threading
-        #HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
-        #HandleThread.start()
+        import threading
+        HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
+        HandleThread.start()
         
         # Multi Thread - 2
 
