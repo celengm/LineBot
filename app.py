@@ -403,17 +403,12 @@ def handle_text_message(event):
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
-                    # IMPORTANT: Request timeout will happen if the result of calculation is long
+                    result_str = calc_result.get_basic_text()
 
-                    result = calc_result[0]
-                    calc_result_output = u'算式: {}\n計算花費: {}秒\n計算結果: {}'.format(
-                        '\n{}'.format(text) if '\n' in text else text, 
-                        calc_result[1],
-                        result)
                     if result // 10**99 < 10:
-                        text = calc_result_output
+                        text = result_str
                     else:
-                        text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(calc_result_output))
+                        text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
 
                     api_reply(token, TextSendMessage(text=text), src)
                     return

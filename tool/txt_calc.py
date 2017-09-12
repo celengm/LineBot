@@ -9,6 +9,7 @@ from multiprocessing import Process, Queue
 class text_calculator(object):
     def __init__(self):
         self._queue = Queue()
+        self._timeout = 15.0
 
     def basic_calc(self, text, debug=False):
         if text_calculator.is_non_calc(text):
@@ -16,27 +17,11 @@ class text_calculator(object):
 
         calc_proc = Process(target=self._exec_calc, args=(text, debug, self._queue))
 
-        start_time = time.time()
-
-        print 'CODE 1'
         calc_proc.start()
-        print 'CODE 2'
         calc_proc.join()
-        print 'CODE 3'
-        result = self._queue.get(True, 15.0)
-        print 'CODE 4'
+        result = self._queue.get(True, self._timeout)
 
-        end_time = time.time()
-
-        if isinstance(result, (float, int, long)):
-            if len(text_calculator.remove_non_digit(text)) < 10:
-                if text != str(result):
-                    return (result, end_time - start_time)
-            else:
-                return (result, end_time - start_time)
-        elif debug:
-            text_calculator.print_debug_info(text, result)
-        
+        return None if result is None else result
 
     def sympy_calc(self, text, return_on_error=False, debug=False):
         result = ''
@@ -68,27 +53,72 @@ class text_calculator(object):
             return error.string_calculator.error_on_calculating(ex) if return_on_error else None
 
     def _exec_calc(self, text, debug, queue):
+        result_data = calc_result_data(text)
         try:
-            print 'CODE 11'
+            start_time = time.time()
+
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
                 exec(text)
 
-            print 'CODE 12'
-            queue.put(result)
-            print 'CODE 13'
-            print queue
+            result_data.auto_record_time(start_time)
+
+            if isinstance(result, (float, int, long)):
+                result_data.success = True
+
+                if isinstance(result, long) and result.bit_length() > 333:
+                    result_data.over_length = True
+
+                start_time = time.time()
+
+                if len(text_calculator.remove_non_digit(text)) < 10:
+                    str_calc_result = str(result)
+                    if text != str_calc_result:
+                        result_data.calc_result = str_calc_result
+                else:
+                    str_calc_result = str(result)
+                    result_data.calc_result = str_calc_result
+
+                result_data.auto_record_time(start_time)
+            else:
+                result_data.success = False
+
+            queue.put(result_data)
 
         except Queue.Empty:
+            result_data.success = False
+            result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout, text)
+                
+            result_data.auto_record_time(start_time)
+
             if debug:
-                text_calculator.print_debug_info(text, result)
-            queue.put(u'Calculation Timeout.')
+                print result_data.get_debug_text()
+
+            queue.put(result_data)
+
+        except OverflowError:
+            result_data.success = False
+            result_data.calc_result = error.string_calculator.overflow(text)
+                
+            result_data.auto_record_time(start_time)
+
+            if debug:
+                print result_data.get_debug_text()
+
+            queue.put(result_data)
 
         except Exception as ex:
+            result_data.success = False
+            result_data.calc_result = ex.message
+                
+            result_data.auto_record_time(start_time)
+
             if debug:
-                text_calculator.print_debug_info(text, result, ex)
-            queue.put(None)
+                print result_data.get_debug_text()
+                queue.put(result_data)
+            else:
+                queue.put(None)
 
     @staticmethod
     def _polynomial_factorication(text):
@@ -120,17 +150,6 @@ class text_calculator(object):
         return re.sub(regex, add_star, text)
 
     @staticmethod
-    def print_debug_info(input_text, output, ex=None):
-        print 'String math calculation failed:'
-        print 'type of output: {}'.format(type(output))
-        print 'Original Text:'
-        print input_text.encode('utf-8')
-        print 'Result variant:'
-        print str(output).encode('utf-8')
-        print 'Error:'
-        print '' if ex is None else ex
-
-    @staticmethod
     def calculate_type(text):
         if '=' in text:
             return calc_type.algebraic_equations
@@ -141,3 +160,76 @@ class calc_type(Enum):
     unknown = 0
     polynomial_factorization = 1
     algebraic_equations = 2
+
+class calc_result_data(object):
+    def __init__(self, formula_str, calc_result=None, calc_time=-1.0, type_cast_time=-1.0, success=False):
+        self._formula_str = formula_str
+        self._calc_result = calc_result
+        self._calc_time = calc_time
+        self._type_cast_time = type_cast_time
+        self._success = success
+        self._overlength = False
+
+    @property
+    def formula_str(self):
+        return self._formula_str
+    
+    @property
+    def calc_result(self):
+        return self._calc_result
+
+    @calc_result.setter
+    def calc_result(self, value):
+        self._calc_result = value
+
+    @property
+    def calc_time(self):
+        return self._calc_time
+
+    @calc_time.setter
+    def calc_time(self, value):
+        self._calc_time = value
+    
+    @property
+    def type_cast_time(self):
+        return self._type_cast_time
+
+    @type_cast_time.setter
+    def type_cast_time(self, value):
+        self._type_cast_time = value
+    
+    @property
+    def success(self):
+        return self._success
+
+    @success.setter
+    def success(self, value):
+        self._success = value
+
+    @property
+    def over_length(self):
+        return self._over_length
+
+    @over_length.setter
+    def over_length(self, value):
+        self._over_length = value
+
+    def auto_record_time(self, start_time):
+        if self._calc_time == -1.0:
+            self._calc_time = time.time() - start_time
+        elif self._type_cast_time == -1.0:
+            if self._calc_time == -1.0:
+                self._calc_time = time.time() - start_time
+            else:
+                self._type_cast_time = time.time() - start_time
+
+    def get_basic_text(self):
+        return u'算式: {}\n結果: {}\n計算時間: {}\n轉型時間: {}秒'.format(
+            self._formula_str,
+            self._calc_result,
+            u'(未執行)' if self._calc_time == -1.0 else self._calc_time,
+            u'(未執行)' if self._type_cast_time == -1.0 else self._type_cast_time)
+
+    def get_debug_text(self):
+        return u'計算{}\n\n{}'.format(self.get_basic_text())
+
