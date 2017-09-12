@@ -7,6 +7,11 @@ import time
 from multiprocessing import Process, Queue as MultiQueue
 import Queue
 
+class calc_type(Enum):
+    normal = 0
+    polynomial_factorization = 1
+    algebraic_equations = 2
+
 class text_calculator(object):
     def __init__(self, timeout=15.0):
         self._queue = MultiQueue()
@@ -166,11 +171,6 @@ class text_calculator(object):
             return calc_type.algebraic_equations
         else:
             return calc_type.polynomial_factorization
-
-class calc_type(Enum):
-    normal = 0
-    polynomial_factorization = 1
-    algebraic_equations = 2
 
 class calc_result_data(object):
     def __init__(self, formula_str, calc_result=None, calc_time=-1.0, type_cast_time=-1.0, success=False):
