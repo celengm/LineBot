@@ -22,11 +22,8 @@ class text_calculator(object):
             calc_proc = Process(target=self._exec_calc, args=(init_time, result_data, debug, self._queue))
 
             calc_proc.start()
-            print 'MAIN'
             result_data = self._queue.get(True, self._timeout)
-            print 'MAIN COMPLETE'
         except Queue.Empty:
-            print 'MAIN TIMEOUT'
             result_data.success = False
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
                 
@@ -37,9 +34,6 @@ class text_calculator(object):
         except Exception as ex:
             raise ex
 
-        print result_data is None
-        if result_data is not None:
-            print result_data.get_basic_text().encode('utf-8')
         return None if result_data is None else result_data
 
     def _exec_calc(self, init_time, result_data, debug, queue):
@@ -47,7 +41,6 @@ class text_calculator(object):
         try:
             start_time = init_time
 
-            print 'PROC EXEC'
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
