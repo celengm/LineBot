@@ -169,7 +169,7 @@ class calc_result_data(object):
         self._calc_time = calc_time
         self._type_cast_time = type_cast_time
         self._success = success
-        self._overlength = False
+        self._over_length = False
 
     @property
     def formula_str(self):
