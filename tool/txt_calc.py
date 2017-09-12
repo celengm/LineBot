@@ -53,13 +53,12 @@ class text_calculator(object):
                     result_data.over_length = True
 
                 start_time = time.time()
-
-                if len(text_calculator.remove_non_digit(text)) < 10:
-                    str_calc_result = str(result)
+                
+                str_calc_result = str(result)
+                if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
                     if text != str_calc_result:
                         result_data.calc_result = str_calc_result
                 else:
-                    str_calc_result = str(result)
                     result_data.calc_result = str_calc_result
 
                 result_data.auto_record_time(start_time)
@@ -101,7 +100,6 @@ class text_calculator(object):
         allchars = ''.join(chr(i) for i in xrange(256))
         identity = string.maketrans('', '')
         nondigits = allchars.translate(identity, string.digits)
-        text = str(text)
         return text.translate(identity, nondigits)
 
     @staticmethod
