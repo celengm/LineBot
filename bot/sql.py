@@ -25,6 +25,7 @@ class db_query_manager(object):
         self.work_queue.put(sql_query_obj(cmd, dict))
         sql_thread = threadWithReturn(target=self._query_worker)
         sql_thread.daemon = True
+        sql_thread.start()
         sql_thread.run()
         return sql_thread.join()
 

@@ -226,8 +226,6 @@ def handle_text_message(event):
     text = event.message.text
     src = event.source
     splitter = '\n'
-    
-    msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_txt)
 
     if text == '561563ed706e6f696abbe050ad79cf334b9262da6f83bc1dcf7328f2':
         sys_data.intercept = not sys_data.intercept
@@ -248,6 +246,8 @@ def handle_text_message(event):
         return
 
     try:
+        msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_txt)
+
         if text == 'ERRORERRORERRORERROR':
             raise Exception('THIS ERROR IS CREATED FOR TESTING PURPOSE.')
         elif splitter in text:
@@ -461,37 +461,54 @@ def handle_sticker_message(event):
     sticker_id = event.message.sticker_id
     rep = event.reply_token
     src = event.source
-    cid = line_api_proc.source_channel_id(src)
+
+    try:
+        cid = line_api_proc.source_channel_id(src)
     
-    sys_data.set_last_sticker(cid, sticker_id)
+        sys_data.set_last_sticker(cid, sticker_id)
 
-    global game_data
-    rps_obj = game_data.get_rps(cid)
+        global game_data
+        rps_obj = game_data.get_rps(cid)
 
-    msg_track.log_message_activity(cid, msg_event_type.recv_stk)
+        msg_track.log_message_activity(cid, msg_event_type.recv_stk)
 
-    if rps_obj is not None:
-        text = minigame_rps_capturing(rps_obj, True, sticker_id, line_api_proc.source_user_id(src))
-        if text is not None:
-            api_reply(rep, TextSendMessage(text=text), src)
-            return
+        if rps_obj is not None:
+            text = minigame_rps_capturing(rps_obj, True, sticker_id, line_api_proc.source_user_id(src))
+            if text is not None:
+                api_reply(rep, TextSendMessage(text=text), src)
+                return
 
-    if isinstance(event.source, SourceUser):
-        results = kwd.search_sticker_keyword(sticker_id)
-        
-        if results is not None:
-            kwdata = u'相關回覆組ID: {}。\n'.format(u', '.join([unicode(result[int(kwdict_col.id)]) for result in results]))
+        if isinstance(event.source, SourceUser):
+            results = kwd.search_sticker_keyword(sticker_id)
+            
+            if results is not None:
+                kwdata = u'相關回覆組ID: {}。\n'.format(u', '.join([unicode(result[int(kwdict_col.id)]) for result in results]))
+            else:
+                kwdata = u'無相關回覆組ID。\n'
+
+            api_reply(rep, 
+                      [TextSendMessage(text=kwdata + u'貼圖圖包ID: {}\n貼圖圖片ID: {}'.format(package_id, sticker_id)),
+                      TextSendMessage(text=u'圖片路徑(Android):\nemulated\\0\\Android\\data\\jp.naver.line.android\\stickers\\{}\\{}'.format(package_id, sticker_id)),
+                      TextSendMessage(text=u'圖片路徑(Windows):\nC:\\Users\\USER_NAME\\AppData\\Local\\LINE\\Data\\Sticker\\{}\\{}'.format(package_id, sticker_id)),
+                      TextSendMessage(text=u'圖片路徑(網路):\n{}'.format(kw_dict_mgr.sticker_png_url(sticker_id)))],
+                      src)
         else:
-            kwdata = u'無相關回覆組ID。\n'
+            auto_reply_system(rep, sticker_id, True, src)
+    except exceptions.LineBotApiError as ex:
+        text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
+        text += u'LINE API發生錯誤，狀態碼: {}\n\n'.format(ex.status_code)
+        for err in ex.error.details:
+            text += u'錯誤內容: {}\n錯誤訊息: {}\n'.format(err.property, err.message.decode("utf-8"))
 
-        api_reply(rep, 
-                  [TextSendMessage(text=kwdata + u'貼圖圖包ID: {}\n貼圖圖片ID: {}'.format(package_id, sticker_id)),
-                  TextSendMessage(text=u'圖片路徑(Android):\nemulated\\0\\Android\\data\\jp.naver.line.android\\stickers\\{}\\{}'.format(package_id, sticker_id)),
-                  TextSendMessage(text=u'圖片路徑(Windows):\nC:\\Users\\USER_NAME\\AppData\\Local\\LINE\\Data\\Sticker\\{}\\{}'.format(package_id, sticker_id)),
-                  TextSendMessage(text=u'圖片路徑(網路):\n{}'.format(kw_dict_mgr.sticker_png_url(sticker_id)))],
-                  src)
-    else:
-        auto_reply_system(rep, sticker_id, True, src)
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
+        api_reply(token, TextSendMessage(text=error_msg), src)
+    except Exception as exc:
+        text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        text += u'錯誤種類: {}\n\n第{}行 - {}'.format(exc_type, exc_tb.tb_lineno, exc.message.decode("utf-8"))
+        
+        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
+        api_reply(token, TextSendMessage(text=error_msg), src)
 
 
 @handler.add(MessageEvent, message=ImageMessage)
