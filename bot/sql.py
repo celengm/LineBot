@@ -4,8 +4,7 @@ import urlparse
 import psycopg2
 from sqlalchemy.exc import IntegrityError
 import traceback
-import Queue
-from threading import Thread
+from multiprocessing.pool import ThreadPool
 
 from bot import webpage_auto_gen 
 
@@ -16,25 +15,16 @@ class db_query_manager(object):
         self.url = urlparse.urlparse(db_url)
         self.set_connection()
         self._auto_gen = webpage_auto_gen.webpage(flask_app)
-        self.work_queue = Queue.Queue()
+        self.pool = ThreadPool(processes=1)
 
     def sql_cmd_only(self, cmd):
         return self.sql_cmd(cmd, None)
 
     def sql_cmd(self, cmd, dict):
-        self.work_queue.put(sql_query_obj(cmd, dict))
-        sql_thread = threadWithReturn(target=self._query_worker)
-        sql_thread.daemon = True
-        sql_thread.start()
-        sql_thread.run()
-        return sql_thread.join()
+        apply_result = self.pool.apply(self._query_worker, (cmd, dict))
+        return apply_result.get()
 
-    def _query_worker(self):
-        query_obj = self.work_queue.get()
-
-        cmd = query_obj.cmd
-        dict = query_obj.dict
-
+    def _query_worker(self, cmd, dict):
         try:
             self.cur.execute(cmd, dict)
             result = self.cur.fetchall()
@@ -66,10 +56,8 @@ class db_query_manager(object):
             result = None
 
             self._auto_gen.rec_error(text, traceback.format_exc().decode('utf-8'), u'(SQL DB)')
-            self.work_queue.task_done()
             raise e
         
-        self.work_queue.task_done()
         if result is not None:
             if len(result) > 0:
                 return result
@@ -91,36 +79,6 @@ class db_query_manager(object):
             port=self.url.port
         )
         self.cur = self.conn.cursor()
-
-
-class sql_query_obj(object):
-    def __init__(self, cmd, dict):
-        self._cmd = cmd
-        self._dict = dict
-
-    @property
-    def cmd(self):
-        return self._cmd
-    
-    @property
-    def dict(self):
-        return self._dict
-
-
-class threadWithReturn(Thread):
-    def __init__(self, *args, **kwargs):
-        super(threadWithReturn, self).__init__(*args, **kwargs)
-
-        self._return = None
-
-    def run(self):
-        if self._Thread__target is not None:
-            self._return = self._Thread__target(*self._Thread__args, **self._Thread__kwargs)
-
-    def join(self, *args, **kwargs):
-        super(threadWithReturn, self).join(*args, **kwargs)
-
-        return self._return
 
 
 
