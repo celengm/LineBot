@@ -227,25 +227,26 @@ def handle_text_message(event):
     src = event.source
     splitter = '\n'
 
-    if text == '561563ed706e6f696abbe050ad79cf334b9262da6f83bc1dcf7328f2':
-        sys_data.intercept = not sys_data.intercept
-        api_reply(token, TextSendMessage(text='Bot {}.'.format('start to intercept messages' if sys_data.intercept else 'stop intercepting messages')), src)
-        return
-    elif sys_data.intercept:
-        intercept_text(event)
-
-    if text == '43afdb2391686dd9710c3879a86c04b5c0a2fc3391ffd2c6a05e4ce0':
-        sys_data.calc_debug = not sys_data.calc_debug
-        print 'Calculator debugging {}.'.format('enabled' if sys_data.calc_debug else 'disabled')
-
-    if text == administrator:
-        sys_data.silence = not sys_data.silence
-        api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Silent' if sys_data.silence else 'Active')), src)
-        return
-    elif sys_data.silence:
-        return
-
     try:
+        if text == '561563ed706e6f696abbe050ad79cf334b9262da6f83bc1dcf7328f2':
+            sys_data.intercept = not sys_data.intercept
+            api_reply(token, TextSendMessage(text='Bot {}.'.format('start to intercept messages' if sys_data.intercept else 'stop intercepting messages')), src)
+            return
+        elif sys_data.intercept:
+            intercept_text(event)
+
+        if text == administrator:
+            sys_data.silence = not sys_data.silence
+            api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Silent' if sys_data.silence else 'Active')), src)
+            return
+        elif sys_data.silence:
+            return
+
+        if text == '43afdb2391686dd9710c3879a86c04b5c0a2fc3391ffd2c6a05e4ce0':
+            sys_data.calc_debug = not sys_data.calc_debug
+            api_reply(token, TextSendMessage(text='Calculator debugging {}.'.format('enabled' if sys_data.calc_debug else 'disabled')), src)
+            return
+
         msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_txt)
 
         if text == 'ERRORERRORERRORERROR':
