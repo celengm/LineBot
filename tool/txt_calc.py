@@ -22,8 +22,11 @@ class text_calculator(object):
 
             calc_proc.start()
             calc_proc.join()
+            print 'MAIN'
             result_data = self._queue.get(True, self._timeout)
+            print 'MAIN COMPLETE'
         except Queue.Empty:
+            print 'MAIN TIMEOUT'
             result_data.success = False
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout, text)
                 
@@ -32,6 +35,8 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text()
 
+        print result_data is None
+        print result_data.get_basic_text()
         return None if result_data is None else result_data
 
     def _exec_calc(self, result_data, debug, queue):
