@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from math import *
+import sympy
+
 import time
 
 class text_calculator(object):
     @staticmethod
-    def calc(text, debug=False):
+    def basic_calc(text, debug=False):
         result = ''
         if text_calculator.is_non_calc(text):
             return
@@ -19,7 +21,6 @@ class text_calculator(object):
             end_time = time.time()
 
             if isinstance(result, (float, int, long)):
-                print result
                 if len(text_calculator.remove_non_digit(text)) < 10:
                     if text != str(result):
                         return (result, end_time - start_time)
@@ -27,22 +28,39 @@ class text_calculator(object):
                     return (result, end_time - start_time)
                 
             elif debug:
-                print 'String math calculation failed:'
-                print type(result)
-                print 'Original Text:'
-                print text.encode('utf-8')
-                print 'Result variant:'
-                print str(result).encode('utf-8')
+                text_calculator.print_debug_info(text, result)
         except Exception as ex:
             if debug:
-                print 'String math calculation failed:'
-                print type(result)
-                print 'Original Text:'
-                print text.encode('utf-8')
-                print 'Result variant:'
-                print str(result).encode('utf-8')
-                print 'Error:'
-                print ex
+                text_calculator.print_debug_info(text, result, ex)
+            return 
+
+    @staticmethod
+    def sympy_calc(text, debug=False):
+        result = ''
+        if text_calculator.is_non_calc(text):
+            return
+        try:
+            start_time = time.time()
+
+            if 'result=' not in text:
+                exec('result={}'.format(text))
+            else:
+                exec(text)
+
+            end_time = time.time()
+
+            if isinstance(result, (float, int, long)):
+                if len(text_calculator.remove_non_digit(text)) < 10:
+                    if text != str(result):
+                        return (result, end_time - start_time)
+                else:
+                    return (result, end_time - start_time)
+                
+            elif debug:
+                text_calculator.print_debug_info(text, result)
+        except Exception as ex:
+            if debug:
+                text_calculator.print_debug_info(text, result, ex)
             return 
 
     @staticmethod
@@ -69,3 +87,14 @@ class text_calculator(object):
                 return match.group()
         
         return re.sub(regex, add_star, text)
+
+    @staticmethod
+    def print_debug_info(input_text, output, ex=None):
+        print 'String math calculation failed:'
+        print 'type of output: {}'.format(type(output))
+        print 'Original Text:'
+        print input_text.encode('utf-8')
+        print 'Result variant:'
+        print str(output).encode('utf-8')
+        print 'Error:'
+        print '' if ex is None else ex

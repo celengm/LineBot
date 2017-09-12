@@ -406,7 +406,7 @@ def handle_text_message(event):
                 api_reply(token, TextSendMessage(text=text), src)
                 return
             else:
-                calc_result = txt_calc.text_calculator.calc(text, sys_data.calc_debug)
+                calc_result = txt_calc.text_calculator.basic_calc(text, sys_data.calc_debug)
                 if calc_result is not None:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 

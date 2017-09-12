@@ -88,7 +88,7 @@ class text_msg(object):
                 if action_kw != 'PIC':
                     results = None
                     text = error.main.incorrect_param(u'參數1', u'STK')
-                elif not is_stk_int or not is_kw_pic_hash:
+                elif not is_stk_int and not is_kw_pic_hash:
                     results = None
                     text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
                 elif action_rep != 'PIC':
@@ -108,7 +108,6 @@ class text_msg(object):
                     else:
                         results = None
                         text = error.main.incorrect_param(u'參數4', u'HTTPS協定，並且是合法的網址')
-
             elif params[3] is not None:
                 rep = params[3]
                 rep_obj = kw_dict_mgr.split_reply(rep)
