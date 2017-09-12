@@ -30,7 +30,7 @@ class text_calculator(object):
             self._process_dict = {
                 calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
                 calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
-                calc_type.polynomial_factorization: Process(target=self._polynomial_factorication, args=(init_time, result_data, debug, self._queue))
+                calc_type.polynomial_factorization: Process(target=self._polynomial_factorization, args=(init_time, result_data, debug, self._queue))
             }
             calc_proc = self._process_dict[type_var]
             calc_proc.start()
@@ -115,8 +115,7 @@ class text_calculator(object):
     def _algebraic_equations(self, init_time, result_data, debug, queue):
         pass
 
-    @staticmethod
-    def _polynomial_factorication(self, init_time, result_data, debug, queue):
+    def _polynomial_factorization(self, init_time, result_data, debug, queue):
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
             start_time = init_time
