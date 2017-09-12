@@ -16,6 +16,11 @@ class text_calculator(object):
     def __init__(self, timeout=15.0):
         self._queue = MultiQueue()
         self._timeout = timeout
+        self._process_dict = {
+            calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
+            calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
+            calc_type.polynomial_factorization: Process(target=self._polynomial_factorication, args=(init_time, result_data, debug, self._queue))
+        }
 
     def calculate(self, text, debug=False, type_var=calc_type.normal):
         if text_calculator.is_non_calc(text):
@@ -24,7 +29,7 @@ class text_calculator(object):
         try:
             result_data = calc_result_data(text)
             init_time = time.time()
-            calc_proc = self._get_calculate_proc(type_var)
+            calc_proc = self._get_calculate_proc(type_var, (init_time, result_data, debug, self._queue))
             calc_proc.start()
 
             result_data = self._queue.get(True, self._timeout)
@@ -43,15 +48,9 @@ class text_calculator(object):
 
         return None if result_data is None else result_data
 
-    def _get_calculate_proc(self, type_var):
-        process_dict = {
-            calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
-            calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
-            calc_type.polynomial_factorization: Process(target=self._polynomial_factorication, args=(init_time, result_data, debug, self._queue))
-        }
-
-        return process_dict.get(type_var,
-                                Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)))
+    def _get_calculate_proc(self, type_var, args_tuple):
+        return self._process_dict.get(type_var,
+                                      Process(target=self._basic_calc_proc, args=args_tuple))
 
     def _basic_calc_proc(self, init_time, result_data, debug, queue):
         text = result_data.formula_str
