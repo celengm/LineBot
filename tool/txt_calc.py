@@ -15,13 +15,17 @@ class text_calculator(object):
         if text_calculator.is_non_calc(text):
             return
 
-        calc_proc = Process(target=self._exec_calc, args=(text, self._queue))
+        calc_proc = Process(target=self._exec_calc, args=(text, debug, self._queue))
 
         start_time = time.time()
 
+        print 'CODE 1'
         calc_proc.start()
+        print 'CODE 2'
         result = self._queue.get(True, 15.0)
+        print 'CODE 3'
         calc_proc.join()
+        print 'CODE 4'
 
         end_time = time.time()
 
@@ -64,14 +68,17 @@ class text_calculator(object):
                 text_calculator.print_debug_info(text, result, ex)
             return error.string_calculator.error_on_calculating(ex) if return_on_error else None
 
-    def _exec_calc(self, text, queue):
+    def _exec_calc(self, text, debug, queue):
         try:
+            print 'CODE 11'
             if 'result=' not in text:
                 exec('result={}'.format(text))
             else:
                 exec(text)
 
+            print 'CODE 12'
             queue.put(result)
+            print 'CODE 13'
 
         except Queue.Empty:
             if debug:

@@ -229,7 +229,7 @@ def handle_text_message(event):
             intercept_text(event)
 
         if text == administrator:
-            api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Silent' if sys_data.silence else 'Active')), src)
+            api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Active' if sys_data.silence else 'Silent')), src)
             sys_data.silence = not sys_data.silence
             return
         elif sys_data.silence:
