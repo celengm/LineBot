@@ -94,16 +94,16 @@ class db_query_manager(object):
 
 class sql_query_obj(object):
     def __init__(self, cmd, dict):
-        self.cmd = cmd
-        self.dict = dict
+        self._cmd = cmd
+        self._dict = dict
 
     @property
     def cmd(self):
-        return self.cmd
+        return self._cmd
     
     @property
     def dict(self):
-        return self.dict
+        return self._dict
 
 
 class threadWithReturn(Thread):
