@@ -20,7 +20,7 @@ class text_calculator(object):
         start_time = time.time()
 
         calc_proc.start()
-        result = result_queue.get(True, 15.0)
+        result = self._queue.get(True, 15.0)
         calc_proc.join()
 
         end_time = time.time()
