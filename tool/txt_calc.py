@@ -22,9 +22,9 @@ class text_calculator(object):
         print 'CODE 1'
         calc_proc.start()
         print 'CODE 2'
-        result = self._queue.get(True, 15.0)
-        print 'CODE 3'
         calc_proc.join()
+        print 'CODE 3'
+        result = self._queue.get(True, 15.0)
         print 'CODE 4'
 
         end_time = time.time()
