@@ -4,11 +4,12 @@ from error import error
 from math import *
 import sympy
 import time
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue as MultiQueue
+import Queue
 
 class text_calculator(object):
     def __init__(self):
-        self._queue = Queue()
+        self._queue = MultiQueue()
         self._timeout = 15.0
 
     def basic_calc(self, text, debug=False):
@@ -224,7 +225,7 @@ class calc_result_data(object):
                 self._type_cast_time = time.time() - start_time
 
     def get_basic_text(self):
-        return u'算式: {}\n結果: {}\n計算時間: {}\n轉型時間: {}秒'.format(
+        return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n轉型時間:\n{}秒'.format(
             self._formula_str,
             self._calc_result,
             u'(未執行)' if self._calc_time == -1.0 else self._calc_time,
