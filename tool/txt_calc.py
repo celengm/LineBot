@@ -162,6 +162,7 @@ class text_calculator(object):
 
             start_time = time.time()
             str_calc_result = str(result)
+            result_data.latex = sympy.latex(result)
             result_data.auto_record_time(start_time)
             
             result_data.formula_str = '\n'.join(formula_list)
@@ -325,7 +326,7 @@ class calc_result_data(object):
 
     @property
     def latex_avaliable(self):
-        return self._latex_avaliable
+        return self._latex_avaliable and self._latex is not None
 
     @latex_avaliable.setter
     def latex_avaliable(self, value):
@@ -352,7 +353,7 @@ class calc_result_data(object):
         return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n顯示時間:\n{}'.format(
             self._formula_str,
             '{}\nLaTeX:\n{}'.format(self._calc_result, self._latex) 
-            if self._latex_avaliable and self._latex is not None 
+            if self._latex_avaliable 
             else self._calc_result,
             u'(未執行)' if self._calc_time == -1.0 else u'{:f}秒'.format(self._calc_time),
             u'(未執行)' if self._type_cast_time == -1.0 else u'{:f}秒'.format(self._type_cast_time))
