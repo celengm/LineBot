@@ -98,6 +98,10 @@ class error(object):
                 u'' if org_text is None else u'\n資料型態: {}\n原始字串: {}'.format(type(org_text), org_text))
 
         @staticmethod
+        def wrong_format_to_calc_equations():
+            return u'方程式計算格式錯誤。請確認輸入格式為:\n第一行 - 有使用的變數，以逗號分隔(例: x, y)\n第二行以後 - 方程式，例如:\n  2x+3y=7\n  5x+8=9'
+
+        @staticmethod
         def overflow(org_text=None):
             return u'發生溢位。請嘗試拆解算式以後重新計算。{}'.format(
                 u'' if org_text is None else u'\n原始字串: {}'.format(org_text))

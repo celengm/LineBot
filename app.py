@@ -382,8 +382,8 @@ def handle_text_message(event):
                 else:
                     sys_data.game_cmd_dict[cmd].count -= 1
             elif head == 'FX':
-                # TODO: temp, add analysis
-                calc_result = str_calc.calculate(cmd, sys_data.calc_debug, txt_calc.calc_type.polynomial_factorization)
+                # IMPORTANT: temp, add analysis
+                calc_result = str_calc.calculate(cmd, sys_data.calc_debug, txt_calc.text_calculator.sympy_calculate_type(cmd))
                 if calc_result is not None and calc_result.success:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
@@ -404,7 +404,7 @@ def handle_text_message(event):
             if rps_text is not None:
                 api_reply(token, TextSendMessage(text=rps_text), src)
                 return
-
+             
         replied = auto_reply_system(token, text, False, src)
         if not replied:
             if (text.startswith('JC ') or text.startswith('HELP ') or text.startswith('G ')) and ((' ' or '  ') in text):

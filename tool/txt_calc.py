@@ -21,6 +21,8 @@ class text_calculator(object):
         self._queue = MultiQueue()
         self._timeout = timeout
 
+        self._equation_keyword = '=0'
+
     def calculate(self, text, debug=False, type_var=calc_type.normal):
         result_data = calc_result_data(text)
         init_time = time.time()
@@ -119,7 +121,51 @@ class text_calculator(object):
             queue.put(result_data)
 
     def _algebraic_equations(self, init_time, result_data, debug, queue):
-        pass
+        result_data = calc_result_data(text)
+        text = text_calculator.formula_to_py(result_data.formula_str)
+        try:
+            text_line = text.split('\n')
+            if len(text_line) < 2:
+                result_data.success = False
+                result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
+                return result_data
+
+            result = ''
+            variants = text_line[0]
+            variants_init = ' '.join(text_line[0])
+            formula_list = text_line[1:]
+            if any(not formula.endswith(self._equation_keyword) for formula in formula_list):
+                result_data.success = False
+                result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
+                return result_data
+            
+            exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
+            exec_py += 'result = sympy.solve(formula_list)'
+
+            start_time = init_time
+            exec(exec_py)
+            result_data.auto_record_time(start_time)
+
+            result_data.success = True
+
+            start_time = time.time()
+            str_calc_result = str(result)
+            result_data.auto_record_time(start_time)
+            
+            result_data.calc_result = str_calc_result
+
+            queue.put(result_data)
+
+        except Exception as ex:
+            result_data.success = False
+            result_data.calc_result = ex.message
+                
+            result_data.auto_record_time(start_time)
+
+            if debug:
+                print result_data.get_debug_text().encode('utf-8')
+            
+            queue.put(result_data)
 
     def _polynomial_factorization(self, init_time, text, debug, queue):
         result_data = calc_result_data(text)
@@ -175,8 +221,8 @@ class text_calculator(object):
         return re.sub(regex, add_star, text)
 
     @staticmethod
-    def calculate_type(text):
-        if '=' in text:
+    def sympy_calculate_type(text):
+        if self._equation_keyword in text:
             return calc_type.algebraic_equations
         else:
             return calc_type.polynomial_factorization
