@@ -96,7 +96,7 @@ class webpage(object):
             content = self._page_content[self._text_route].get(timestamp)
             type_chn = u'回傳文字'
         elif type == content_type.LaTeX:
-            content = self._page_content[self._text_route].get(timestamp)
+            content = self._page_content[self._latex_route].get(timestamp)
             type_chn = u'製作LaTeX成像'
 
         if content is None:
