@@ -255,5 +255,7 @@ class calc_result_data(object):
             u'(未執行)' if self._type_cast_time == -1.0 else u'{:f}秒'.format(self._type_cast_time))
 
     def get_debug_text(self):
-        return u'計算{}\n\n{}'.format(self.get_basic_text())
+        return u'計算{}\n\n{}'.format(
+            u'成功' if self._success else u'失敗', 
+            self.get_basic_text())
 
