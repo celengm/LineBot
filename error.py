@@ -105,3 +105,7 @@ class error(object):
         def overflow(org_text=None):
             return u'發生溢位。請嘗試拆解算式以後重新計算。{}'.format(
                 u'' if org_text is None else u'\n原始字串: {}'.format(org_text))
+
+        @staticmethod
+        def unknown_calculate_type():
+            u'無法辨認要使用的計算項目。正確格式請參閱使用說明書( {} )'.format(error.user_manual_url)

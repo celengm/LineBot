@@ -12,6 +12,7 @@ from math import *
 import sympy
 
 class calc_type(Enum):
+    unknown = -1
     normal = 0
     polynomial_factorization = 1
     algebraic_equations = 2
@@ -35,7 +36,15 @@ class text_calculator(object):
 
         try:
             if sympy_calc:
-                calc_proc = self._get_calculate_proc(self._sympy_calculate_type(text), (init_time, text, debug, self._queue))
+                calc_type_var = self._sympy_calculate_type(text)
+
+                if calc_type_var == calc_type.unknown:
+                    result_data.success = False
+                    result_data.calc_result = error.string_calculator.unknown_calculate_type()
+
+                    return result_data
+
+                calc_proc = self._get_calculate_proc(calc_type_var, (init_time, text, debug, self._queue))
             else:
                 calc_proc = self._get_calculate_proc(calc_type.normal, (init_time, text, debug, self._queue))
             calc_proc.start()
@@ -45,7 +54,6 @@ class text_calculator(object):
             result_data.auto_record_time(init_time)
             calc_proc.terminate()
 
-            result_data = calc_result_data(text)
             result_data.success = False
             result_data.timeout = True
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
@@ -200,8 +208,10 @@ class text_calculator(object):
     def _sympy_calculate_type(self, text):
         if self._equation_keyword in text and '\n' in text:
             return calc_type.algebraic_equations
-        else:
+        elif '\n' not in text:
             return calc_type.polynomial_factorization
+        else:
+            return calc_type.unknown
 
     @staticmethod
     def remove_non_digit(text):
@@ -222,7 +232,6 @@ class text_calculator(object):
             return True
         else:
             return False
-        
 
     @staticmethod
     def formula_to_py(text):
