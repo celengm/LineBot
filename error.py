@@ -108,4 +108,4 @@ class error(object):
 
         @staticmethod
         def unknown_calculate_type():
-            u'無法辨認要使用的計算項目。正確格式請參閱使用說明書( {} )'.format(error.user_manual_url)
+            return u'無法辨認要使用的計算項目。正確格式請參閱使用說明書( {} )'.format(error.user_manual_url)
