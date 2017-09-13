@@ -135,12 +135,12 @@ class text_calculator(object):
             variants_init = ' '.join(text_line[0])
             formula_list = text_line[1:]
 
-            if all(formula.endswith(self._equation_keyword) for formula in formula_list):
-                formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
-            else:
+            if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
+            else:
+                formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
             exec_py = '{}=sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
             exec_py += '\nresult=sympy.solve(formula_list_replaced)'
