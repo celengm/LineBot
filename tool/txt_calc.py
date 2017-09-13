@@ -22,11 +22,13 @@ class text_calculator(object):
         self._timeout = timeout
 
     def calculate(self, text, debug=False, type_var=calc_type.normal):
-        if text_calculator.is_non_calc(text):
-            return
-
         result_data = calc_result_data(text)
         init_time = time.time()
+        
+        if text_calculator.is_non_calc(text):
+            result_data.auto_record_time(init_time)
+            return result_data
+
         try:
             calc_proc = self._get_calculate_proc(type_var, (init_time, text, debug, self._queue))
             calc_proc.start()
@@ -46,7 +48,6 @@ class text_calculator(object):
 
         return result_data
 
-    # TODO: not used - for optimize
     def _get_calculate_proc(self, type_enum, args_tuple):
         """
         args_tuple: (init_time, text, debug, self._queue)
