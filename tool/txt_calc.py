@@ -81,8 +81,11 @@ class text_calculator(object):
                 
                 str_calc_result = str(result)
                 if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
+                    print type(text)
                     print text
+                    print type(str_calc_result)
                     print str_calc_result
+                    print text != str_calc_result
                     if text != str_calc_result:
                         result_data.success = True
                         result_data.calc_result = str_calc_result
