@@ -171,7 +171,7 @@ class text_calculator(object):
 
         except Exception as ex:
             result_data.success = False
-            result_data.calc_result = ex.message
+            result_data.calc_result = '{} - {}'.format(type(ex), ex.message)
                 
             result_data.auto_record_time(start_time)
 
