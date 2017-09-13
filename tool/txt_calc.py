@@ -143,7 +143,7 @@ class text_calculator(object):
             exec_py += '\nresult = sympy.solve(formula_list)'
 
             start_time = init_time
-            exec(exec_py)
+            exec(exec_py) in globals(), locals()
             result_data.auto_record_time(start_time)
 
             result_data.success = True
