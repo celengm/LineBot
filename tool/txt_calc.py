@@ -198,7 +198,7 @@ class text_calculator(object):
         queue.put(result_data)
 
     def _sympy_calculate_type(self, text):
-        if self._equation_keyword in text:
+        if self._equation_keyword in text and '\n' in text:
             return calc_type.algebraic_equations
         else:
             return calc_type.polynomial_factorization
