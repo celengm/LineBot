@@ -284,7 +284,7 @@ class calc_result_data(object):
     def latex(self):
         return self._latex
 
-    @calc_result.setter
+    @latex.setter
     def latex(self, value):
         if isinstance(value, str):
             self._latex = value

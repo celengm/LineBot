@@ -408,7 +408,6 @@ def handle_text_message(event):
 
                 if calc_result.latex_avaliable:
                     text += u'\nLaTeX URL:\n{}'.format(webpage_generator.rec_latex(calc_result.latex))
-                    print webpage_generator._page_content[webpage_generator._latex_route]
 
                 api_reply(token, TextSendMessage(text=text), src)
 
