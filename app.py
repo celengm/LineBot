@@ -384,7 +384,7 @@ def handle_text_message(event):
             elif head == 'FX':
                 # TODO: temp, add analysis
                 calc_result = str_calc.calculate(cmd, sys_data.calc_debug, txt_calc.calc_type.polynomial_factorization)
-                if calc_result is not None:
+                if calc_result is not None and calc_result.success:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
                     result_str = calc_result.get_basic_text()

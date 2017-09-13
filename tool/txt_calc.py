@@ -30,7 +30,7 @@ class text_calculator(object):
 
             result_data = calc_result_data(text)
             init_time = time.time()
-            # TODO: try to optimize
+            # TODO: optimize process_dict (create once)
             self._process_dict = {
                 calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
                 calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
@@ -73,8 +73,6 @@ class text_calculator(object):
             result_data.auto_record_time(start_time)
 
             if isinstance(result, (float, int, long)):
-                result_data.success = True
-
                 if isinstance(result, long) and result.bit_length() > 333:
                     result_data.over_length = True
 
@@ -83,13 +81,13 @@ class text_calculator(object):
                 str_calc_result = str(result)
                 if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
                     if text != str_calc_result:
+                        result_data.success = True
                         result_data.calc_result = str_calc_result
                 else:
+                    result_data.success = True
                     result_data.calc_result = str_calc_result
 
                 result_data.auto_record_time(start_time)
-            else:
-                result_data.success = False
 
             queue.put(result_data)
 
