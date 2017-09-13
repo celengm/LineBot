@@ -17,7 +17,7 @@ class calc_type(Enum):
     algebraic_equations = 2
 
 class text_calculator(object):
-    # IMPORTANT: always timeout on non calculable text
+    # IMPORTANT: always timeout on non calculatable text (basic)
 
     def __init__(self, timeout=15.0):
         self._queue = MultiQueue()
@@ -35,6 +35,7 @@ class text_calculator(object):
 
         try:
             if sympy_calc:
+                print self._sympy_calculate_type(text)
                 calc_proc = self._get_calculate_proc(self._sympy_calculate_type(text), (init_time, text, debug, self._queue))
             else:
                 calc_proc = self._get_calculate_proc(calc_type.normal, (init_time, text, debug, self._queue))
@@ -93,15 +94,11 @@ class text_calculator(object):
                 
                 result_data.success = result_data.formula_str != _calc_result
                 result_data.calc_result = _calc_result
-
-                queue.put(result_data)
             else:
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.result_is_not_numeric(text)
                 if debug:
                     print result_data.get_debug_text().encode('utf-8')
-
-                queue.put(result_data)
 
         except OverflowError:
             result_data.success = False
@@ -112,8 +109,6 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
 
-            queue.put(result_data)
-
         except Exception as ex:
             result_data.success = False
             result_data.calc_result = ex.message
@@ -123,7 +118,7 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
 
-            queue.put(result_data)
+        queue.put(result_data)
 
     def _algebraic_equations(self, init_time, text, debug, queue):
         # TODO: wrong format error handling
@@ -162,8 +157,6 @@ class text_calculator(object):
             result_data.calc_result = str_calc_result
             result_data.calc_result = exec_py
 
-            queue.put(result_data)
-
         except Exception as ex:
             result_data.success = False
             result_data.calc_result = ex.message
@@ -173,7 +166,7 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
             
-            queue.put(result_data)
+        queue.put(result_data)
 
     def _polynomial_factorization(self, init_time, text, debug, queue):
         result_data = calc_result_data(text)
@@ -191,8 +184,6 @@ class text_calculator(object):
             
             result_data.calc_result = str_calc_result
 
-            queue.put(result_data)
-
         except Exception as ex:
             result_data.success = False
             result_data.calc_result = ex.message
@@ -202,7 +193,7 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
             
-            queue.put(result_data)
+        queue.put(result_data)
 
     def _sympy_calculate_type(self, text):
         if self._equation_keyword in text:
@@ -220,7 +211,14 @@ class text_calculator(object):
 
     @staticmethod
     def is_non_calc(text):
-        return (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.')
+        try:
+            text.decode('ascii')
+            return (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.')
+        except UnicodeDecodeError:
+            return True
+        else:
+            return False
+        
 
     @staticmethod
     def formula_to_py(text):

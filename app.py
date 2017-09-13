@@ -229,7 +229,7 @@ def handle_text_message(event):
             intercept_text(event)
 
         if text == administrator:
-            api_reply(token, TextSendMessage(text='Bot set to {}.'.format('Active' if sys_data.silence else 'Silent')), src)
+            line_api.reply_message(token, TextSendMessage(text='Bot set to {}.'.format('Active' if sys_data.silence else 'Silent')))
             sys_data.silence = not sys_data.silence
             return
         elif sys_data.silence:
@@ -386,17 +386,14 @@ def handle_text_message(event):
 
                 # IMPORTANT: temp, add analysis
                 calc_result = str_calc.calculate(calc_str, sys_data.calc_debug, True)
-                if calc_result is not None and calc_result.success:
-                    sys_data.helper_cmd_dict['CALC'].count += 1
+                sys_data.helper_cmd_dict['CALC'].count += 1
 
-                    result_str = calc_result.get_basic_text()
+                result_str = calc_result.get_basic_text()
 
-                    if calc_result.over_length:
-                        text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
-                    else:
-                        text = result_str
+                if calc_result.over_length:
+                    text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
                 else:
-                    text = u'No calculate result.'
+                    text = result_str
 
                 api_reply(token, TextSendMessage(text=text), src)
 
