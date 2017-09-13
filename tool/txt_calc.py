@@ -24,7 +24,8 @@ class text_calculator(object):
     def calculate(self, text, debug=False, type_var=calc_type.normal):
         if text_calculator.is_non_calc(text):
             return
-        
+
+        result_data = calc_result_data(text)
         init_time = time.time()
         try:
             calc_proc = self._get_calculate_proc(type_var, (init_time, text, debug, self._queue))
