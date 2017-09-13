@@ -205,9 +205,6 @@ class text_calculator(object):
             queue.put(result_data)
 
     def _sympy_calculate_type(self, text):
-        print 'MAIN'
-        print self._equation_keyword in text
-        print text
         if self._equation_keyword in text:
             return calc_type.algebraic_equations
         else:

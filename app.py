@@ -382,8 +382,10 @@ def handle_text_message(event):
                 else:
                     sys_data.game_cmd_dict[cmd].count -= 1
             elif head == 'FX':
+                calc_str = cmd + splitter + oth
+
                 # IMPORTANT: temp, add analysis
-                calc_result = str_calc.calculate(cmd, sys_data.calc_debug, True)
+                calc_result = str_calc.calculate(calc_str, sys_data.calc_debug, True)
                 if calc_result is not None and calc_result.success:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
