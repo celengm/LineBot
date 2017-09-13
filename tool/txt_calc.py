@@ -127,20 +127,29 @@ class text_calculator(object):
         try:
             print "ALG 11"
             text_line = text.split('\n')
+            
+            print "ALG 10"
             if len(text_line) < 2:
-                result_data.success = False
-                result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
-                return result_data
-
-            result = ''
-            variants = text_line[0]
-            variants_init = ' '.join(text_line[0])
-            formula_list = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
-            if any(not formula.endswith(self._equation_keyword) for formula in formula_list):
+                print "ALG 100"
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 return result_data
             
+            print "ALG 09"
+            result = ''
+            variants = text_line[0]
+            print "ALG 08"
+            variants_init = ' '.join(text_line[0])
+            print "ALG 07"
+            formula_list = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
+            print "ALG 06"
+            if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
+                print "ALG 066"
+                result_data.success = False
+                result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
+                return result_data
+
+            print "ALG 05"
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
             exec_py += '\nresult = sympy.solve(formula_list)'
             
