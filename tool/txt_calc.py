@@ -125,53 +125,41 @@ class text_calculator(object):
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
-            print "ALG 11"
             text_line = text.split('\n')
             
-            print "ALG 10"
             if len(text_line) < 2:
-                print "ALG 100"
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
             
-            print "ALG 09"
             result = ''
             variants = text_line[0]
-            print "ALG 08"
             variants_init = ' '.join(text_line[0])
-            print "ALG 07"
             formula_list = text_line[1:]
-            print "ALG 06"
-            print formula_list
+
             if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
-                print "ALG 066"
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
             else:
-                formula_list = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
+                formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
-            print "ALG 05"
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
-            exec_py += '\nresult = sympy.solve(formula_list)'
+            exec_py += '\nresult = sympy.solve(formula_list_replaced)'
             
-            print "ALG 12"
+            print type(sympy.solve(formula_list_replaced))
+
             start_time = init_time
             exec(exec_py) in globals(), locals()
             result_data.auto_record_time(start_time)
-            print "ALG 13"
 
             result_data.success = True
 
             start_time = time.time()
-            print "ALG 14"
             str_calc_result = str(result)
-            print result
-            print "ALG 15"
             result_data.auto_record_time(start_time)
             
-            print "ALG 16"
+            result_data.formula_str = '\n'.join(formula_list)
             result_data.calc_result = str_calc_result
 
         except Exception as ex:
@@ -266,6 +254,13 @@ class calc_result_data(object):
     @property
     def formula_str(self):
         return self._formula_str
+
+    @formula_str.setter
+    def formula_str(self, value):
+        if isinstance(value, (str, unicode)):
+            self._formula_str = value
+        else:
+            raise Exception('Calculate result should be string or unicode.')
     
     @property
     def calc_result(self):
