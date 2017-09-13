@@ -133,7 +133,7 @@ class text_calculator(object):
                 print "ALG 100"
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
-                return result_data
+                queue.put(result_data)
             
             print "ALG 09"
             result = ''
@@ -143,11 +143,12 @@ class text_calculator(object):
             print "ALG 07"
             formula_list = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
             print "ALG 06"
+            print formula_list
             if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
                 print "ALG 066"
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
-                return result_data
+                queue.put(result_data)
 
             print "ALG 05"
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
