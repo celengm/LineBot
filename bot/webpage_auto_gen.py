@@ -71,6 +71,7 @@ class webpage(object):
         with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._latex_route][timestamp] = latex
+            print self._page_content[self._latex_route]
             
             return url_for('latex_webpage', timestamp=timestamp)
 
