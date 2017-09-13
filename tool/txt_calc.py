@@ -122,6 +122,7 @@ class text_calculator(object):
 
     def _algebraic_equations(self, init_time, text, debug, queue):
         # TODO: wrong format error handling
+        print "ALG"
 
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
