@@ -94,12 +94,12 @@ class text_calculator(object):
 
                 queue.put(result_data)
             else:
+                result_data.success = False
+                result_data.calc_result = error.string_calculator.result_is_not_numeric(text)
                 if debug:
-                    result_data.success = False
-                    result_data.calc_result = error.string_calculator.result_is_not_numeric(text)
                     print result_data.get_debug_text().encode('utf-8')
 
-                queue.put(None)
+                queue.put(result_data)
 
         except OverflowError:
             result_data.success = False
@@ -120,14 +120,14 @@ class text_calculator(object):
 
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
-                queue.put(result_data)
-            else:
-                queue.put(None)
+
+            queue.put(result_data)
 
     def _algebraic_equations(self, init_time, result_data, debug, queue):
         pass
 
-    def _polynomial_factorization(self, init_time, result_data, debug, queue):
+    def _polynomial_factorization(self, init_time, text, debug, queue):
+        result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
             start_time = init_time
@@ -152,9 +152,8 @@ class text_calculator(object):
 
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
-                queue.put(result_data)
-            else:
-                queue.put(None)
+            
+            queue.put(result_data)
 
     @staticmethod
     def remove_non_digit(text):
