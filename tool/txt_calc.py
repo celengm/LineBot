@@ -216,6 +216,8 @@ class text_calculator(object):
             return (text.startswith('0') and '.' not in text) or text.startswith('+') or text.endswith('.')
         except UnicodeDecodeError:
             return True
+        except UnicodeEncodeError:
+            return True
         else:
             return False
         
