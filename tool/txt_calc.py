@@ -123,7 +123,7 @@ class text_calculator(object):
 
             queue.put(result_data)
 
-    def _algebraic_equations(self, init_time, result_data, debug, queue):
+    def _algebraic_equations(self, init_time, text, debug, queue):
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
