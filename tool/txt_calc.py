@@ -79,7 +79,7 @@ class text_calculator(object):
 
                 start_time = time.time()
                 
-                str_calc_result = str(result)
+                str_calc_result = unicode(result)
                 if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
                     print type(text)
                     print text
