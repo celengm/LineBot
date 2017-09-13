@@ -154,6 +154,7 @@ class text_calculator(object):
             exec_py += '\nresult=sympy.solve(formula_list_replaced)'
 
             start_time = init_time
+            print exec_py
             exec(exec_py) in globals(), locals()
 
             result_data.auto_record_time(start_time)
