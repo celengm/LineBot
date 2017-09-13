@@ -206,11 +206,11 @@ class text_calculator(object):
 
     def _sympy_calculate_type(self, text):
         print 'MAIN'
+        print self._equation_keyword in text
+        print text
         if self._equation_keyword in text:
-            print 'IN'
             return calc_type.algebraic_equations
         else:
-            print 'NO IN'
             return calc_type.polynomial_factorization
 
     @staticmethod
