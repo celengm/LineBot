@@ -188,6 +188,7 @@ class calc_result_data(object):
         self._calc_time = -1.0
         self._type_cast_time = -1.0
         self._timeout = False
+        self._success = False
         self._over_length = False
 
     @property
