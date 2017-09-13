@@ -17,6 +17,8 @@ class calc_type(Enum):
     algebraic_equations = 2
 
 class text_calculator(object):
+    # IMPORTANT: always timeout on non calculable text
+
     def __init__(self, timeout=15.0):
         self._queue = MultiQueue()
         self._timeout = timeout
@@ -203,9 +205,12 @@ class text_calculator(object):
             queue.put(result_data)
 
     def _sympy_calculate_type(self, text):
+        print 'MAIN'
         if self._equation_keyword in text:
+            print 'IN'
             return calc_type.algebraic_equations
         else:
+            print 'NO IN'
             return calc_type.polynomial_factorization
 
     @staticmethod
