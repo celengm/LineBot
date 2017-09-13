@@ -71,7 +71,6 @@ class webpage(object):
         with self._flask_app.app_context():
             timestamp = str(int(time.time()))
             self._page_content[self._latex_route][timestamp] = latex
-            print self._page_content[self._latex_route]
             
             return url_for('latex_webpage', timestamp=timestamp)
 
@@ -80,6 +79,8 @@ class webpage(object):
         return sorted_list
 
     def get_content(self, type, timestamp):
+        print self._page_content[self._latex_route]
+
         timestamp = str(timestamp)
         content = None
         if type == content_type.Error:
