@@ -129,7 +129,7 @@ class text_calculator(object):
 
     def _algebraic_equations(self, init_time, text, debug, queue):
         # TODO: wrong format error handling
-        result_data = calc_result_data(text)
+        result_data = calc_result_data(text, True)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
             text_line = text.split('\n')
@@ -179,7 +179,7 @@ class text_calculator(object):
         queue.put(result_data)
 
     def _polynomial_factorization(self, init_time, text, debug, queue):
-        result_data = calc_result_data(text)
+        result_data = calc_result_data(text, True)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
             start_time = init_time
@@ -190,6 +190,7 @@ class text_calculator(object):
 
             start_time = time.time()
             str_calc_result = str(result)
+            result_data.latex = sympy.latex(result)
             result_data.auto_record_time(start_time)
             
             result_data.calc_result = str_calc_result
@@ -246,14 +247,16 @@ class text_calculator(object):
         return re.sub(regex, add_star, text)
 
 class calc_result_data(object):
-    def __init__(self, formula_str):
+    def __init__(self, formula_str, latex_avaliable=False):
         self._formula_str = formula_str
         self._calc_result = None
+        self._latex = None
         self._calc_time = -1.0
         self._type_cast_time = -1.0
         self._timeout = False
         self._success = False
         self._over_length = False
+        self._latex_avaliable = latex_avaliable
 
     @property
     def formula_str(self):
@@ -276,6 +279,17 @@ class calc_result_data(object):
             self._calc_result = value
         else:
             raise Exception('Calculate result should be string or unicode.')
+    
+    @property
+    def latex(self):
+        return self._latex
+
+    @calc_result.setter
+    def latex(self, value):
+        if isinstance(value, str):
+            self._latex = value
+        else:
+            raise Exception('LaTeX should be string.')
 
     @property
     def calc_time(self):
@@ -310,6 +324,14 @@ class calc_result_data(object):
         self._success = value
 
     @property
+    def latex_avaliable(self):
+        return self._latex_avaliable
+
+    @latex_avaliable.setter
+    def latex_avaliable(self, value):
+        self._latex_avaliable = value
+
+    @property
     def over_length(self):
         return self._over_length
 
@@ -327,9 +349,9 @@ class calc_result_data(object):
                 self._type_cast_time = time.time() - start_time
 
     def get_basic_text(self):
-        return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n轉型時間:\n{}'.format(
+        return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n顯示時間:\n{}'.format(
             self._formula_str,
-            self._calc_result,
+            self._calc_result if not self._latex_avaliable else '{}\nLaTeX:\n{}'.format(self._calc_result, self._latex),
             u'(未執行)' if self._calc_time == -1.0 else u'{:f}秒'.format(self._calc_time),
             u'(未執行)' if self._type_cast_time == -1.0 else u'{:f}秒'.format(self._type_cast_time))
 
