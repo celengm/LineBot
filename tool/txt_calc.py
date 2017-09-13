@@ -146,7 +146,6 @@ class text_calculator(object):
             
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
             exec_py += '\nresult = sympy.solve(formula_list)'
-            print exec_py
 
             start_time = init_time
             exec(exec_py) in globals(), locals()
@@ -159,6 +158,7 @@ class text_calculator(object):
             result_data.auto_record_time(start_time)
             
             result_data.calc_result = str_calc_result
+            result_data.calc_result = exec_py
 
             queue.put(result_data)
 
