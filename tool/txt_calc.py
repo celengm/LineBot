@@ -131,7 +131,6 @@ class text_calculator(object):
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
             
-            result = ''
             variants = text_line[0]
             variants_init = ' '.join(text_line[0])
             formula_list = text_line[1:]
