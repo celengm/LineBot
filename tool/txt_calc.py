@@ -351,7 +351,9 @@ class calc_result_data(object):
     def get_basic_text(self):
         return u'算式:\n{}\n結果:\n{}\n計算時間:\n{}\n顯示時間:\n{}'.format(
             self._formula_str,
-            self._calc_result if not self._latex_avaliable else '{}\nLaTeX:\n{}'.format(self._calc_result, self._latex),
+            '{}\nLaTeX:\n{}'.format(self._calc_result, self._latex) 
+            if self._latex_avaliable and self._latex is not None 
+            else self._calc_result,
             u'(未執行)' if self._calc_time == -1.0 else u'{:f}秒'.format(self._calc_time),
             u'(未執行)' if self._type_cast_time == -1.0 else u'{:f}秒'.format(self._type_cast_time))
 
