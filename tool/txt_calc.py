@@ -148,7 +148,7 @@ class text_calculator(object):
 
             start_time = init_time
             exec(exec_py) in globals(), locals()
-            exec(exec_py2) in globals(), locals()
+            exec(exec_py_2) in globals(), locals()
 
             print result
             print type(result)
