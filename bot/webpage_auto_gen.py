@@ -93,6 +93,9 @@ class webpage(object):
         elif type == content_type.Text:
             content = self._page_content[self._text_route].get(timestamp)
             type_chn = u'回傳文字'
+        elif type == content_type.LaTeX:
+            content = self._page_content[self._text_route].get(timestamp)
+            type_chn = u'製作LaTeX成像'
 
         if content is None:
             return error.webpage.no_content_at_time(type_chn, float(timestamp))
