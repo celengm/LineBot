@@ -43,13 +43,6 @@ class text_calculator(object):
 
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
-        except Exception as ex:
-            result_data.auto_record_time(init_time)
-            result_data = calc_result_data(text)
-            result_data.success = False
-            result_data.calc_result = ex.message
-
-            raise ex
 
         return result_data
 
