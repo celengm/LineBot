@@ -121,7 +121,6 @@ class text_calculator(object):
 
     def _algebraic_equations(self, init_time, text, debug, queue):
         # TODO: wrong format error handling
-        print "ALG"
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
@@ -146,11 +145,13 @@ class text_calculator(object):
 
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
             exec_py += '\nresult = sympy.solve(formula_list_replaced)'
-            
-            print type(sympy.solve(formula_list_replaced))
 
             start_time = init_time
             exec(exec_py) in globals(), locals()
+
+            print result
+            print type(result)
+            print type(sympy.solve(formula_list_replaced))
             result_data.auto_record_time(start_time)
 
             result_data.success = True
@@ -171,8 +172,6 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
             
-            
-        print "ALG 2"
         queue.put(result_data)
 
     def _polynomial_factorization(self, init_time, text, debug, queue):
