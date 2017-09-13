@@ -136,8 +136,13 @@ def make_tmp_dir():
     try:
         os.makedirs(static_tmp_path)
     except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(static_tmp_path):
-            pass
+        import shutil
+
+        if exc.errno == errno.EEXIST:
+            shutil.rmtree(static_tmp_path)
+            make_tmp_dir()
+        elif os.path.isdir(static_tmp_path):
+            raise Exception('Path has been set to represent the static temporary path.')
         else:
             raise
 
@@ -193,6 +198,12 @@ def full_content(timestamp):
     sys_data.view_webpage()
     content = webpage_generator.get_content(webpage_auto_gen.content_type.Text, timestamp)
     return webpage_auto_gen.webpage.html_render(content, u'完整資訊')
+
+@app.route("/latex/<timestamp>", methods=['GET'])
+def latex_webpage(timestamp):
+    sys_data.view_webpage()
+    latex_script = webpage_generator.get_content(webpage_auto_gen.content_type.LaTeX, timestamp)
+    return webpage_auto_gen.webpage.latex_render(latex_script)
 
 @app.route("/ranking/<type>", methods=['GET'])
 def full_ranking(type):
@@ -394,6 +405,9 @@ def handle_text_message(event):
                     text = u'因算式結果長度大於100字，為避免洗板，請點選網址察看結果。\n{}'.format(webpage_generator.rec_text(result_str))
                 else:
                     text = result_str
+
+                if calc_result.latex_avaliable:
+                    text += u'\nLaTeX URL:\n{}'.format(webpage_generator.rec_latex(calc_result.latex))
 
                 api_reply(token, TextSendMessage(text=text), src)
 

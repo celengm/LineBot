@@ -18,10 +18,12 @@ class webpage(object):
         self._query_route = 'FullQuery'
         self._info_route = 'FullInfo'
         self._text_route = 'Text'
+        self._latex_route = 'LaTeX'
         self._page_content = {self._error_route: defaultdict(unicode), 
                               self._query_route: defaultdict(unicode), 
                               self._info_route: defaultdict(unicode), 
-                              self._text_route: defaultdict(unicode)}
+                              self._text_route: defaultdict(unicode), 
+                              self._latex_route: defaultdict(unicode)}
 
 
     def rec_error(self, err_sum, decoded_traceback, channel_id):
@@ -64,6 +66,13 @@ class webpage(object):
                 [u'【Message {}】\n\n{}'.format(index, txt) for index, txt in enumerate(text_list, start=1)])
             
             return url_for('full_content', timestamp=timestamp)
+    
+    def rec_latex(self, latex):
+        with self._flask_app.app_context():
+            timestamp = str(int(time.time()))
+            self._page_content[self._latex_route][timestamp] = latex
+            
+            return url_for('latex_webpage', timestamp=timestamp)
 
     def error_timestamp_list(self):
         sorted_list = sorted(self._page_content[self._error_route].keys(), key=self._page_content[self._error_route].get, reverse=True)
@@ -95,6 +104,10 @@ class webpage(object):
         return render_template('WebPage.html', Contents=content.replace(' ', '&nbsp;').split('\n'), Title=title)
 
     @staticmethod
+    def latex_render(latex_script):
+        return render_template('LaTeX.html', LaTeX_script=latex_script)
+
+    @staticmethod
     def html_render_error_list(boot_up, error_dict):
             """
             Error dict 
@@ -108,5 +121,5 @@ class content_type(Enum):
     Query = 1
     Info = 2
     Text = 3
-
+    LaTeX = 4
 

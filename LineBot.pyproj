@@ -25,6 +25,7 @@
     <Content Include="static\style.css" />
     <Content Include="templates\Base.html" />
     <Content Include="templates\ErrorList.html" />
+    <Content Include="templates\LaTeX.html" />
     <Content Include="templates\WebPage.html" />
   </ItemGroup>
   <ItemGroup>
