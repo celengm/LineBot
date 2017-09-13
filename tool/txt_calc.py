@@ -72,6 +72,7 @@ class text_calculator(object):
 
             result_data.auto_record_time(start_time)
 
+            # TODO: error reported
             if isinstance(result, (float, int, long)):
                 if isinstance(result, long) and result.bit_length() > 333:
                     result_data.over_length = True
@@ -80,6 +81,8 @@ class text_calculator(object):
                 
                 str_calc_result = str(result)
                 if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
+                    print text
+                    print str_calc_result
                     if text != str_calc_result:
                         result_data.success = True
                         result_data.calc_result = str_calc_result
