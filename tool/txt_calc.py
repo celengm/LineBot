@@ -140,7 +140,7 @@ class text_calculator(object):
                 queue.put(result_data)
             
             variants = text_line[0]
-            variants_init = ' '.join(text_line[0])
+            variants_init = ' '.join(text_line[0].split(','))
             formula_list = text_line[1:]
 
             if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
