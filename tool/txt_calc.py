@@ -124,6 +124,8 @@ class text_calculator(object):
             queue.put(result_data)
 
     def _algebraic_equations(self, init_time, text, debug, queue):
+        # TODO: wrong format error handling
+
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
@@ -152,6 +154,7 @@ class text_calculator(object):
             result_data.success = True
 
             start_time = time.time()
+            print result
             str_calc_result = str(result)
             result_data.auto_record_time(start_time)
             
