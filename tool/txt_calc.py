@@ -23,7 +23,7 @@ class text_calculator(object):
 
         self._equation_keyword = '=0'
 
-    def calculate(self, text, debug=False, type_var=calc_type.normal):
+    def calculate(self, text, debug=False, sympy_calc=False):
         result_data = calc_result_data(text)
         init_time = time.time()
         
@@ -32,7 +32,10 @@ class text_calculator(object):
             return result_data
 
         try:
-            calc_proc = self._get_calculate_proc(type_var, (init_time, text, debug, self._queue))
+            if sympy_calc:
+                calc_proc = self._get_calculate_proc(self._sympy_calculate_type(text), (init_time, text, debug, self._queue))
+            else:
+                calc_proc = self._get_calculate_proc(calc_type.normal, (init_time, text, debug, self._queue))
             calc_proc.start()
 
             result_data = self._queue.get(True, self._timeout)
@@ -196,6 +199,12 @@ class text_calculator(object):
             
             queue.put(result_data)
 
+    def _sympy_calculate_type(self, text):
+        if self._equation_keyword in text:
+            return calc_type.algebraic_equations
+        else:
+            return calc_type.polynomial_factorization
+
     @staticmethod
     def remove_non_digit(text):
         import string
@@ -219,13 +228,6 @@ class text_calculator(object):
                 return match.group()
         
         return re.sub(regex, add_star, text)
-
-    @staticmethod
-    def sympy_calculate_type(text):
-        if self._equation_keyword in text:
-            return calc_type.algebraic_equations
-        else:
-            return calc_type.polynomial_factorization
 
 class calc_result_data(object):
     def __init__(self, formula_str):
