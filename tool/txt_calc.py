@@ -25,44 +25,51 @@ class text_calculator(object):
         if text_calculator.is_non_calc(text):
             return
         
+        init_time = time.time()
         try:
-            # TODO: process dispose? (RAM Exceed)
-
-            result_data = calc_result_data(text)
-            init_time = time.time()
-            # TODO: optimize process_dict (create once)
-            self._process_dict = {
-                calc_type.normal: Process(target=self._basic_calc_proc, args=(init_time, result_data, debug, self._queue)),
-                calc_type.algebraic_equations: Process(target=self._algebraic_equations, args=(init_time, result_data, debug, self._queue)),
-                calc_type.polynomial_factorization: Process(target=self._polynomial_factorization, args=(init_time, result_data, debug, self._queue))
-            }
-            calc_proc = self._process_dict[type_var]
+            calc_proc = self._get_calculate_proc(type_var, (init_time, text, debug, self._queue))
             calc_proc.start()
 
             result_data = self._queue.get(True, self._timeout)
         except Queue.Empty:
+            result_data.auto_record_time(init_time)
             calc_proc.terminate()
 
+            result_data = calc_result_data(text)
             result_data.success = False
+            result_data.timeout = True
             result_data.calc_result = error.string_calculator.calculation_timeout(self._timeout)
-                
-            result_data.auto_record_time(init_time)
 
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
         except Exception as ex:
+            result_data.auto_record_time(init_time)
+            result_data = calc_result_data(text)
+            result_data.success = False
+            result_data.calc_result = ex.message
+
             raise ex
 
-        return None if result_data is None else result_data
+        return result_data
 
     # TODO: not used - for optimize
-    def _get_calculate_proc(self, type_var, args_tuple):
-        return self._process_dict.get(type_var,
-                                      Process(target=self._basic_calc_proc, args=args_tuple))
+    def _get_calculate_proc(self, type_enum, args_tuple):
+        """
+        args_tuple: (init_time, text, debug, self._queue)
+        """
+        if type_enum == calc_type.normal:
+            return Process(target=self._basic_calc_proc, args=args_tuple)
+        elif type_enum == calc_type.algebraic_equations:
+            return Process(target=self._algebraic_equations, args=args_tuple)
+        elif type_enum == calc_type.polynomial_factorization:
+            return Process(target=self._polynomial_factorization, args=args_tuple)
+        else:
+            raise Exception('Process not defined.')
 
-    def _basic_calc_proc(self, init_time, result_data, debug, queue):
-        text = result_data.formula_str
+    def _basic_calc_proc(self, init_time, text, debug, queue):
+        result_data = calc_result_data(text)
         try:
+            result = ''
             start_time = init_time
 
             if 'result=' not in text:
@@ -78,23 +85,21 @@ class text_calculator(object):
 
                 start_time = time.time()
                 
-                str_calc_result = str(result)
-                if len(text_calculator.remove_non_digit(str_calc_result)) < 10:
-                    print type(text)
-                    print text
-                    print type(str_calc_result)
-                    print str_calc_result
-                    print text != str_calc_result
-                    if text != str_calc_result:
-                        result_data.success = True
-                        result_data.calc_result = str_calc_result
-                else:
-                    result_data.success = True
-                    result_data.calc_result = str_calc_result
+                _calc_result = str(result)
 
                 result_data.auto_record_time(start_time)
+                
+                result_data.success = result_data.formula_str != _calc_result
+                result_data.calc_result = _calc_result
 
-            queue.put(result_data)
+                queue.put(result_data)
+            else:
+                if debug:
+                    result_data.success = False
+                    result_data.calc_result = error.string_calculator.result_is_not_numeric(text)
+                    print result_data.get_debug_text().encode('utf-8')
+
+                queue.put(None)
 
         except OverflowError:
             result_data.success = False
@@ -133,8 +138,9 @@ class text_calculator(object):
 
             start_time = time.time()
             str_calc_result = str(result)
-            result_data.calc_result = str_calc_result
             result_data.auto_record_time(start_time)
+            
+            result_data.calc_result = str_calc_result
 
             queue.put(result_data)
 
@@ -182,12 +188,12 @@ class text_calculator(object):
             return calc_type.polynomial_factorization
 
 class calc_result_data(object):
-    def __init__(self, formula_str, calc_result=None, calc_time=-1.0, type_cast_time=-1.0, success=False):
+    def __init__(self, formula_str):
         self._formula_str = formula_str
-        self._calc_result = calc_result
-        self._calc_time = calc_time
-        self._type_cast_time = type_cast_time
-        self._success = success
+        self._calc_result = None
+        self._calc_time = -1.0
+        self._type_cast_time = -1.0
+        self._timeout = False
         self._over_length = False
 
     @property
@@ -221,6 +227,14 @@ class calc_result_data(object):
     def type_cast_time(self, value):
         self._type_cast_time = value
     
+    @property
+    def timeout(self):
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        self._timeout = value
+        
     @property
     def success(self):
         return self._success

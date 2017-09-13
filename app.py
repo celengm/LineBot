@@ -416,7 +416,7 @@ def handle_text_message(event):
                 return
             else:
                 calc_result = str_calc.calculate(text, sys_data.calc_debug)
-                if calc_result is not None:
+                if calc_result.success or calc_result.timeout:
                     sys_data.helper_cmd_dict['CALC'].count += 1
 
                     result_str = calc_result.get_basic_text()
