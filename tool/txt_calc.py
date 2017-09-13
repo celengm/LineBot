@@ -208,7 +208,7 @@ class text_calculator(object):
     def _sympy_calculate_type(self, text):
         if self._equation_keyword in text and '\n' in text:
             return calc_type.algebraic_equations
-        elif '\n' not in text:
+        elif self._equation_keyword not in text and '\n' not in text:
             return calc_type.polynomial_factorization
         else:
             return calc_type.unknown
