@@ -140,7 +140,7 @@ class text_calculator(object):
                 return result_data
             
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
-            exec_py += 'result = sympy.solve(formula_list)'
+            exec_py += '\nresult = sympy.solve(formula_list)'
 
             start_time = init_time
             exec(exec_py)
