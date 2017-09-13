@@ -35,7 +35,6 @@ class text_calculator(object):
 
         try:
             if sympy_calc:
-                print self._sympy_calculate_type(text)
                 calc_proc = self._get_calculate_proc(self._sympy_calculate_type(text), (init_time, text, debug, self._queue))
             else:
                 calc_proc = self._get_calculate_proc(calc_type.normal, (init_time, text, debug, self._queue))
@@ -123,10 +122,10 @@ class text_calculator(object):
     def _algebraic_equations(self, init_time, text, debug, queue):
         # TODO: wrong format error handling
         print "ALG"
-
         result_data = calc_result_data(text)
         text = text_calculator.formula_to_py(result_data.formula_str)
         try:
+            print "ALG 11"
             text_line = text.split('\n')
             if len(text_line) < 2:
                 result_data.success = False
@@ -144,19 +143,24 @@ class text_calculator(object):
             
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(variants, variants_init)
             exec_py += '\nresult = sympy.solve(formula_list)'
-
+            
+            print "ALG 12"
             start_time = init_time
             exec(exec_py) in globals(), locals()
             result_data.auto_record_time(start_time)
+            print "ALG 13"
 
             result_data.success = True
 
             start_time = time.time()
+            print "ALG 14"
             str_calc_result = str(result)
+            print result
+            print "ALG 15"
             result_data.auto_record_time(start_time)
             
+            print "ALG 16"
             result_data.calc_result = str_calc_result
-            result_data.calc_result = exec_py
 
         except Exception as ex:
             result_data.success = False
@@ -167,6 +171,8 @@ class text_calculator(object):
             if debug:
                 print result_data.get_debug_text().encode('utf-8')
             
+            
+        print "ALG 2"
         queue.put(result_data)
 
     def _polynomial_factorization(self, init_time, text, debug, queue):
