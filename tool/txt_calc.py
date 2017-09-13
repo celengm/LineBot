@@ -49,7 +49,7 @@ class text_calculator(object):
             result_data.auto_record_time(init_time)
 
             if debug:
-                print result_data.get_debug_text()
+                print result_data.get_debug_text().encode('utf-8')
         except Exception as ex:
             raise ex
 
@@ -72,7 +72,6 @@ class text_calculator(object):
 
             result_data.auto_record_time(start_time)
 
-            # TODO: error reported
             if isinstance(result, (float, int, long)):
                 if isinstance(result, long) and result.bit_length() > 333:
                     result_data.over_length = True
@@ -104,7 +103,7 @@ class text_calculator(object):
             result_data.auto_record_time(start_time)
 
             if debug:
-                print result_data.get_debug_text()
+                print result_data.get_debug_text().encode('utf-8')
 
             queue.put(result_data)
 
@@ -115,7 +114,7 @@ class text_calculator(object):
             result_data.auto_record_time(start_time)
 
             if debug:
-                print result_data.get_debug_text()
+                print result_data.get_debug_text().encode('utf-8')
                 queue.put(result_data)
             else:
                 queue.put(None)
@@ -146,7 +145,7 @@ class text_calculator(object):
             result_data.auto_record_time(start_time)
 
             if debug:
-                print result_data.get_debug_text()
+                print result_data.get_debug_text().encode('utf-8')
                 queue.put(result_data)
             else:
                 queue.put(None)
