@@ -139,8 +139,6 @@ class text_calculator(object):
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
             
-            variants = text_line[0]
-            variants_init = ' '.join(text_line[0].split(','))
             formula_list = text_line[1:]
 
             # TODO: test the equation below. make it able to calculate
@@ -155,7 +153,7 @@ class text_calculator(object):
             else:
                 formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
-            exec_py = '\nresult=sympy.solve(formula_list_replaced, {}=sympy.symbols(\'{}\', real=True))'.format(variants, variants_init)
+            exec_py = 'result=sympy.solve(formula_list_replaced, sympy.symbols(\'{}\', real=True))'.format(' '.join(text_line[0].split(',')))
 
             start_time = init_time
             print exec_py
