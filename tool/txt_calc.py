@@ -150,8 +150,12 @@ class text_calculator(object):
             
             formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
+            # [u'x**2-1']
+
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(var_init, var_init_symbol)
-            exec_py += '\nresult = sympy.solve(formula_list_replaced, {})'.format(var_init)
+            exec_py += '\nresult = sympy.solve([{}], {})'.format(
+                ','.join(formula_list_replaced),
+                var_init)
             print exec_py
             print formula_list_replaced
 
