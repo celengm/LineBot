@@ -155,6 +155,7 @@ class text_calculator(object):
 
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(text_line[0], ' '.join(text_line[0].split(',')))
             exec_py = '\nresult=sympy.solve(formula_list_replaced, {})'.format(text_line[0])
+            print exec_py
 
             start_time = init_time
             exec(exec_py) in globals(), locals()
