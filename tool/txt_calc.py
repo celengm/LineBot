@@ -150,11 +150,11 @@ class text_calculator(object):
                 result_data.success = False
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
-            else:
-                formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
+            
+            formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
             exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(text_line[0], ' '.join(text_line[0].split(',')))
-            exec_py = '\nresult=sympy.solve(formula_list_replaced, {})'.format(text_line[0])
+            exec_py += '\nresult=sympy.solve(formula_list_replaced, {})'.format(text_line[0])
             print exec_py
 
             start_time = init_time
