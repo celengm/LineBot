@@ -156,7 +156,6 @@ class text_calculator(object):
             exec_py = 'result=sympy.solve(formula_list_replaced, sympy.symbols(\'{}\', real=True))'.format(' '.join(text_line[0].split(',')))
 
             start_time = init_time
-            print exec_py
             exec(exec_py) in globals(), locals()
 
             result_data.auto_record_time(start_time)
