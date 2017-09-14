@@ -139,12 +139,9 @@ class text_calculator(object):
                 result_data.calc_result = error.string_calculator.wrong_format_to_calc_equations()
                 queue.put(result_data)
             
+            var_init = text_line[0].replace(' ', '')
+            var_init_symbol = var_init.split(',')
             formula_list = text_line[1:]
-
-            # TODO: test the equation below. make it able to calculate
-            """
-            2*Abs(x+3)+Abs(1-y)-2=0
-            """
 
             if any((not formula.endswith(self._equation_keyword)) for formula in formula_list):
                 result_data.success = False
@@ -153,8 +150,8 @@ class text_calculator(object):
             
             formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
-            exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(text_line[0], ' '.join(text_line[0].split(',')))
-            exec_py += '\nresult=sympy.solve(formula_list_replaced, {})'.format(text_line[0])
+            exec_py = '{} = sympy.symbols(\'{}\', real=True)'.format(var_init, var_init_symbol)
+            exec_py += '\nresult = sympy.solve(formula_list_replaced, {})'.format(var_init)
             print exec_py
 
             start_time = init_time
