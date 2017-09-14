@@ -153,7 +153,8 @@ class text_calculator(object):
             else:
                 formula_list_replaced = [text_calculator.formula_to_py(eq).replace(self._equation_keyword, '') for eq in text_line[1:]]
 
-            exec_py = 'result=sympy.solve(formula_list_replaced, sympy.symbols(\'{}\', real=True))'.format(' '.join(text_line[0].split(',')))
+            exec_py = '{} = symbols(\'{}\', real=True)'.format(text_line[0], ' '.join(text_line[0].split(',')))
+            exec_py = '\nresult=sympy.solve(formula_list_replaced, {})'.format(text_line[0])
 
             start_time = init_time
             exec(exec_py) in globals(), locals()
