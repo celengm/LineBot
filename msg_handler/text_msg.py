@@ -464,8 +464,6 @@ class text_msg(object):
         return text
 
     def GA(self, src, params):
-        error_no_action_fetch = error.main.miscellaneous(u'無對應指令。有可能是因為權限不足或是缺少參數而造成。')
-       
         perm_dict = {3: u'權限: 開發者/機器人管理員',
                      2: u'權限: Group Admin',
                      1: u'權限: Group Moderator',
@@ -476,8 +474,6 @@ class text_msg(object):
         param_count = len(params) - params.count(None)
 
         if isinstance(src, SourceUser):
-            text = error_no_action_fetch
-
             # Set bot auto-reply switch
             if perm >= 1 and param_count == 3:
                 action = params[1].replace(' ', '')
@@ -546,6 +542,8 @@ class text_msg(object):
                         text = u'{}刪除失敗。\n錯誤: {}'.format(position, result)
                 else:
                     text = error.main.invalid_thing(u'指令', action)
+            else:
+                text = error.main.miscellaneous(u'無對應指令。有可能是因為權限不足或是缺少參數而造成。')
         else:
             text = error.main.incorrect_channel()
 
