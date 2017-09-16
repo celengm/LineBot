@@ -495,7 +495,7 @@ class text_msg(object):
                     text = error.main.invalid_thing(u'參數1(動作)', action)
             # Set new admin/moderator 
             elif perm >= 2 and param_count == 5:
-                action = params[1]
+                action = params[1].replace(' ', '')
                 gid = params[2]
                 new_uid = None if params[3] == 'DELETE' else params[3]
                 pw = params[4]
