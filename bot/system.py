@@ -231,13 +231,19 @@ class imgur_proc(object):
         self._imgur_api = imgur_api
 
     def upload(self, path):
-        config = {
-	    	'album': None,
-	    	'name':  'Test',
-	    	'title': 'Test',
-	    	'description': 'Test'
-	    }
-        return self._imgur_api.upload_from_path(path, config=config, anon=False)['link']
+        try:
+            config = {
+	        	'album': None,
+	        	'name':  'Test',
+	        	'title': 'Test',
+	        	'description': 'Test'
+	        }
+            return self._imgur_api.upload_from_path(path, config=config, anon=False)['link']
+        except ImgurClientError as e:
+            text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
+            text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
+
+            return text
 
     @property
     def user_limit(self):

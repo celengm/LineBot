@@ -587,6 +587,7 @@ class ImgurClient(object):
         if not config:
             config = dict()
 
+        print type(fd)
         contents = fd.read()
         data = {
             'image': contents,

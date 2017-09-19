@@ -545,16 +545,11 @@ def handle_image_message(event):
 
         if isinstance(src, SourceUser):
             image_uploaded = img_executor.upload_imgur(msg)
-            api_reply(token, TextMessage(text=image_uploaded), src)
-            #api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), TextSendMessage(text=image_sha)], src)
+            api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), 
+                              TextSendMessage(text=image_sha),
+                              TextMessage(text=image_uploaded)], src)
         else:
             auto_reply_system(token, image_sha, False, src, True)
-    except ImgurClientError as e:
-        text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
-        text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
-
-        error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
-        api_reply(token, TextSendMessage(text=error_msg), src)
     except Exception as exc:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         exc_type, exc_obj, exc_tb = sys.exc_info()
