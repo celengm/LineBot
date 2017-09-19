@@ -230,35 +230,15 @@ class line_api_proc(object):
 class imgur_proc(object):
     def __init__(self, imgur_api):
         self._imgur_api = imgur_api
-
-    def upload(self, path):
-        try:
-            config = {
-	        	'album': None,
-	        	'name':  'Test',
-	        	'title': 'Test',
-	        	'description': 'Test'
-	        }
-            return self._imgur_api.upload_from_path(path, config=config, anon=False)['link']
-        except ImgurClientError as e:
-            text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
-
-            return text
-
     
-    def upload_content(self, content):
-        try:
-            config = {
-	        	'album': None,
-	        	'name':  'Test',
-	        	'title': 'Test',
-	        	'description': 'Test'
-	        }
-            return self._imgur_api.upload(content, config=config, anon=False)['link']
-        except ImgurClientError as e:
-            text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
-
-            return text
+    def upload(self, content, image_name):
+        config = {
+	    	'album': None,
+	    	'name':  image_name,
+	    	'title': image_name,
+	    	'description': 'Automatically uploaded by line bot.(LINE ID: @fcb0332q)'
+	    }
+        return self._imgur_api.upload(content, config=config, anon=False)['link']
 
     @property
     def user_limit(self):
