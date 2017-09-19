@@ -23,27 +23,32 @@ class img_msg(object):
     def upload_imgur(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
 
-        with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
+        with open(u"img.jpg", "w") as image_file:
             for chunk in message_content.iter_content():
-                tf.write(chunk)
-            tempfile_path = tf.name
+                image_file.write(chunk)
 
-            dest_path = tempfile_path + '.jpg'
-            dest_name = os.path.basename(dest_path)
-            os.rename(tempfile_path, dest_path)
-
-            print os.listdir(u'static/tmp')
-            print dest_path
-
-            imgur_url = self._imgur_api.upload(dest_path)
-
-            #import binascii
-
-            #with open(dest_path, 'rb') as f:
-            #    hexdata = binascii.hexlify(f.read())
-            
-            #hexlist = map(''.join, zip(*[iter(hexdata)]*2))
-
-        #os.remove(dest_path)
+            imgur_url = self._imgur_api.upload(u"img.jpg")
 
         return u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)
+
+        #with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
+        #    for chunk in message_content.iter_content():
+        #        tf.write(chunk)
+        #    tempfile_path = tf.name
+
+        #    dest_path = tempfile_path + '.jpg'
+        #    dest_name = os.path.basename(dest_path)
+        #    os.rename(tempfile_path, dest_path)
+
+        #    imgur_url = self._imgur_api.upload(dest_path)
+
+        #    #import binascii
+
+        #    #with open(dest_path, 'rb') as f:
+        #    #    hexdata = binascii.hexlify(f.read())
+            
+        #    #hexlist = map(''.join, zip(*[iter(hexdata)]*2))
+
+        ##os.remove(dest_path)
+
+        #return u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)
