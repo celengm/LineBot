@@ -34,7 +34,7 @@ class img_msg(object):
             image_url = self._imgur_api.upload(content, sha224)
             end_time = time.time()
 
-            return u'檔案已上傳至imgur。\n總處理時間: {:f}'.format(end_time - start_time), image_url
+            return u'檔案已上傳至imgur。\n總處理時間: {:f}秒'.format(end_time - start_time), image_url
         except ImgurClientError as e:
             text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
 
