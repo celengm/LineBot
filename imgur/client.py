@@ -588,7 +588,7 @@ class ImgurClient(object):
             
             import hashlib
             print hashlib.sha224(contents[0:4096]).hexdigest()
-            print contents[0:15]
+            print ":".join("{:02x}".format(ord(c)) for c in contents[0:15])
 
             data = {
                 'image': contents,
