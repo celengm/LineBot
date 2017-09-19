@@ -544,7 +544,8 @@ def handle_image_message(event):
         sys_data.set_last_pic_sha(cid, image_sha)
 
         if isinstance(src, SourceUser):
-            img_executor.upload_imgur(msg)
+            image_uploaded = img_executor.upload_imgur(msg)
+            api_reply(token, TextMessage(text=image_uploaded), src)
             #api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), TextSendMessage(text=image_sha)], src)
         else:
             auto_reply_system(token, image_sha, False, src, True)

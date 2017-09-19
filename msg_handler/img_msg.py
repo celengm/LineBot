@@ -32,7 +32,7 @@ class img_msg(object):
             dest_name = os.path.basename(dest_path)
             os.rename(tempfile_path, dest_path)
 
-            imgur_url = self.imgur_api.upload(dest_path)
+            imgur_url = self._imgur_api.upload(dest_path)
 
             #import binascii
 
