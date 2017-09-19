@@ -20,7 +20,7 @@ class img_msg(object):
             chunk_data = chunk
             break
 
-        return self._generate_sha224(chunk_data)
+        return img_msg.generate_sha224(chunk_data)
 
     def upload_imgur(self, line_msg):
         try:
@@ -28,12 +28,10 @@ class img_msg(object):
 
             import time
             start_time = time.time()
-            for chunk in message_content.iter_content(4096):
-                chunk_data = chunk
-                break
-            sha224 = self._generate_sha224(chunk_data)
-            image_url = self._imgur_api.upload(message_content.content, sha224)
+            content = message_content.content
+            sha224 = img_msg.generate_sha224(content[0:4096])
             print time.time() - start_time
+            image_url = self._imgur_api.upload(content, sha224)
 
             return u'檔案已上傳至imgur。\nURL: {}'.format(image_url)
         except ImgurClientError as e:
@@ -41,5 +39,6 @@ class img_msg(object):
 
             return text
 
-    def _generate_sha224(self, part_content):
+    @staticmethod
+    def generate_sha224(part_content):
         return hashlib.sha224(part_content).hexdigest()
