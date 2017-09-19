@@ -547,7 +547,7 @@ def handle_image_message(event):
             image_uploaded = img_executor.upload_imgur(msg)
 
             send_message_list = [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), TextSendMessage(text=image_sha)]
-            send_message_list.extend(image_uploaded)
+            send_message_list.extend([TextSendMessage(text=txt) for txt in image_uploaded])
 
             api_reply(token, send_message_list, src)
         else:
