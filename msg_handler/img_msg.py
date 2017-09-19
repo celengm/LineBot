@@ -27,6 +27,7 @@ class img_msg(object):
             for chunk in message_content.iter_content():
                 image_file.write(chunk)
 
+            print os.listdir(u'.')
             imgur_url = self._imgur_api.upload(u"img.jpg")
 
         return u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)
