@@ -423,12 +423,10 @@ class text_msg(object):
                 text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
 
                 text += u'連結IP: {}\n'.format(ip_address)
-                print user_remaining
-                print user_limit
                 text += u'IP可用積分: {} ({:.2%})\n'.format(user_remaining, float(user_remaining) / float(user_limit))
                 text += u'IP上限積分: {}\n'.format(user_limit)
                 text += u'IP積分重設時間: {} (UTC+8)\n\n'.format((datetime.fromtimestamp(float(user_reset)) + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
-                text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, client_remaining / float(client_limit))
+                text += u'目前API擁有積分: {} ({:.2%})\n'.format(client_remaining, float(client_remaining) / float(client_limit))
                 text += u'今日API上限積分: {}'.format(client_limit)
             else:
                 text = wrong_param1
