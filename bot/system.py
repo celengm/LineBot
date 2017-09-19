@@ -7,6 +7,7 @@ import hashlib
 import operator
 import traceback
 from math import *
+from imgur.helpers.error import ImgurClientError
 
 from linebot.models import SourceGroup, SourceRoom, SourceUser
 
