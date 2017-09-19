@@ -584,8 +584,11 @@ class ImgurClient(object):
             if not config:
                 config = dict()
 
-            print type(fd)
             contents = fd.read()
+            
+            import hashlib
+            print hashlib.sha224(contents[0:4096]).hexdigest()
+
             data = {
                 'image': contents,
                 'type': 'file',
