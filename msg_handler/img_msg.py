@@ -39,5 +39,5 @@ class img_msg(object):
 
             return text
 
-    def _generate_sha224(part_content):
+    def _generate_sha224(self, part_content):
         return hashlib.sha224(part_content).hexdigest()
