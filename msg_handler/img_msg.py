@@ -4,6 +4,8 @@ import os
 import tempfile
 import hashlib
 
+from imgur.helpers.error import ImgurClientError
+
 class img_msg(object):
     def __init__(self, line_api, imgur_api, tmp_path, kw_dict):
         self._line_api = line_api
