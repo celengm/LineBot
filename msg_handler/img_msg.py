@@ -3,6 +3,7 @@
 import os
 import tempfile
 import hashlib
+import time
 
 from imgur.helpers.error import ImgurClientError
 
@@ -26,14 +27,14 @@ class img_msg(object):
         try:
             message_content = self._line_api.get_content(line_msg.id)
 
-            import time
             start_time = time.time()
             content = message_content.content
             sha224 = img_msg.generate_sha224(content[0:4096])
-            print time.time() - start_time
-            image_url = self._imgur_api.upload(content, sha224)
 
-            return u'檔案已上傳至imgur。\nURL: {}'.format(image_url)
+            image_url = self._imgur_api.upload(content, sha224)
+            end_time = time.time()
+
+            return u'檔案已上傳至imgur。\n總處理時間: {:f}'.format(end_time - start_time), image_url
         except ImgurClientError as e:
             text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
 

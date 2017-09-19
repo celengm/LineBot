@@ -545,9 +545,11 @@ def handle_image_message(event):
 
         if isinstance(src, SourceUser):
             image_uploaded = img_executor.upload_imgur(msg)
-            api_reply(token, [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), 
-                              TextSendMessage(text=image_sha),
-                              TextMessage(text=image_uploaded)], src)
+
+            send_message_list = [TextSendMessage(text=u'檔案雜湊碼(SHA224)'), TextSendMessage(text=image_sha)]
+            send_message_list.extend(image_uploaded)
+
+            api_reply(token, send_message_list, src)
         else:
             auto_reply_system(token, image_sha, False, src, True)
     except Exception as exc:
