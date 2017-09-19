@@ -231,7 +231,13 @@ class imgur_proc(object):
         self._imgur_api = imgur_api
 
     def upload(self, path):
-        return self._imgur_api.upload_from_path(path)['link']
+        config = {
+	    	'album': None,
+	    	'name':  'Test',
+	    	'title': 'Test',
+	    	'description': 'Test'
+	    }
+        return self._imgur_api.upload_from_path(path, config=config, anon=False)['link']
 
     @property
     def user_limit(self):

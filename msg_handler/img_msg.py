@@ -34,13 +34,13 @@ class img_msg(object):
 
             imgur_url = self.imgur_api.upload(dest_path)
 
-            import binascii
+            #import binascii
 
-            with open(dest_path, 'rb') as f:
-                hexdata = binascii.hexlify(f.read())
+            #with open(dest_path, 'rb') as f:
+            #    hexdata = binascii.hexlify(f.read())
             
-            hexlist = map(''.join, zip(*[iter(hexdata)]*2))
+            #hexlist = map(''.join, zip(*[iter(hexdata)]*2))
 
-        os.remove(dest_path)
+        #os.remove(dest_path)
 
         return u'檔案已上傳至imgur。\nURL: {}'.format(imgur_url)
