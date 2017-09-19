@@ -241,7 +241,7 @@ class imgur_proc(object):
 	        }
             return self._imgur_api.upload_from_path(path, config=config, anon=False)['link']
         except ImgurClientError as e:
-            text += u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
+            text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
 
             return text
 
