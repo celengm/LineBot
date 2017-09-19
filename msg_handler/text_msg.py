@@ -420,7 +420,7 @@ class text_msg(object):
                 client_remaining = self.imgur_api_proc.client_remaining
 
                 text = u'【IMGUR API相關資料】\n'
-                text += u'積分相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
+                text += u'額度相關說明請參閱使用說明書(輸入"小水母"可以獲取連結)\n\n'
 
                 text += u'連結IP: {}\n'.format(ip_address)
                 text += u'IP可用額度: {} ({:.2%})\n'.format(user_remaining, float(user_remaining) / float(user_limit))
