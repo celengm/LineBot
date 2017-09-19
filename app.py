@@ -48,8 +48,8 @@ from linebot.models import (
 )
 
 # import imgur API
-from imgurpython import ImgurClient
-from imgurpython.helpers.error import ImgurClientError
+from imgur import ImgurClient
+from imgur.helpers.error import ImgurClientError
 
 # Main initialization
 app = Flask(__name__)

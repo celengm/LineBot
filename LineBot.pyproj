@@ -42,6 +42,26 @@
     <Compile Include="db\db_base.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="imgur\client.py" />
+    <Compile Include="imgur\helpers\error.py" />
+    <Compile Include="imgur\helpers\format.py" />
+    <Compile Include="imgur\helpers\__init__.py" />
+    <Compile Include="imgur\imgur\models\account.py" />
+    <Compile Include="imgur\imgur\models\account_settings.py" />
+    <Compile Include="imgur\imgur\models\album.py" />
+    <Compile Include="imgur\imgur\models\comment.py" />
+    <Compile Include="imgur\imgur\models\conversation.py" />
+    <Compile Include="imgur\imgur\models\custom_gallery.py" />
+    <Compile Include="imgur\imgur\models\gallery_album.py" />
+    <Compile Include="imgur\imgur\models\gallery_image.py" />
+    <Compile Include="imgur\imgur\models\image.py" />
+    <Compile Include="imgur\imgur\models\message.py" />
+    <Compile Include="imgur\imgur\models\notification.py" />
+    <Compile Include="imgur\imgur\models\tag.py" />
+    <Compile Include="imgur\imgur\models\tag_vote.py" />
+    <Compile Include="imgur\imgur\models\__init__.py" />
+    <Compile Include="imgur\imgur\__init__.py" />
+    <Compile Include="imgur\__init__.py" />
     <Compile Include="msg_handler\game_msg.py">
       <SubType>Code</SubType>
     </Compile>
@@ -101,6 +121,10 @@
     <Folder Include="bot\" />
     <Folder Include="db\" />
     <Folder Include="game\" />
+    <Folder Include="imgur\" />
+    <Folder Include="imgur\helpers\" />
+    <Folder Include="imgur\imgur\" />
+    <Folder Include="imgur\imgur\models\" />
     <Folder Include="msg_handler\" />
     <Folder Include="templates\" />
     <Folder Include="static\" />
