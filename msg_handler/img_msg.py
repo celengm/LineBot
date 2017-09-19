@@ -23,9 +23,9 @@ class img_msg(object):
     def upload_imgur(self, line_msg):
         message_content = self._line_api.get_content(line_msg.id)
 
-        print os.listdir(u'.')
+        image_url = self._imgur_api.upload_content(message_content)
 
-        return u'檔案已上傳至imgur。\nURL: {}'.format('0.0')
+        return u'檔案已上傳至imgur。\nURL: {}'.format(image_url)
 
         #with tempfile.NamedTemporaryFile(dir=self.tmp_path, delete=False) as tf:
         #    for chunk in message_content.iter_content():

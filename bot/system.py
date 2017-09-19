@@ -245,6 +245,21 @@ class imgur_proc(object):
 
             return text
 
+    
+    def upload_content(self, content):
+        try:
+            config = {
+	        	'album': None,
+	        	'name':  'Test',
+	        	'title': 'Test',
+	        	'description': 'Test'
+	        }
+            return self._imgur_api.upload(content, config=config, anon=False)['link']
+        except ImgurClientError as e:
+            text = u'Imgur API發生錯誤，狀態碼: {}\n\n錯誤訊息: {}'.format(e.status_code, e.error_message)
+
+            return text
+
     @property
     def user_limit(self):
         return self._imgur_api.credits['UserLimit']
