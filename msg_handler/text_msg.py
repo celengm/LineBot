@@ -369,14 +369,14 @@ class text_msg(object):
                     self.kwd.sticker_keyword_count(True),
                     self.kwd.picture_reply_count(True))
                 
-                if user_list_top is None:
+                if user_list_top is not None:
                     text += u'\n\n製作最多回覆組的LINE使用者ID:\n{}'.format(user_list_top[0])
                     text += u'\n製作最多回覆組的LINE使用者:\n{}【{}組 - {:.2%}】'.format(
                         error.main.line_account_data_not_found() if line_profile is None else line_profile.display_name,
                         user_list_top[1],
                         user_list_top[1] / float(kwpct))
                 else:
-                    text += u'查無LINE使用者回覆組製作資料。'
+                    text += u'\n查無LINE使用者回覆組製作資料。'
 
                 if first is not None:
                     text += u'\n\n使用次數最多的回覆組【{}次，{}組】:\n'.format(first[0][int(kwdict_col.used_count)], len(first))
