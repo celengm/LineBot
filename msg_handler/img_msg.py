@@ -30,10 +30,10 @@ class img_msg(object):
 
             dest_path = tempfile_path + '.jpg'
             dest_name = os.path.basename(dest_path)
-            print os.listdir(u'.')
+            print os.listdir(u'static/tmp')
             os.rename(tempfile_path, dest_path)
 
-            print os.listdir(u'.')
+            print os.listdir(u'static/tmp')
 
             imgur_url = self._imgur_api.upload(dest_path)
 
