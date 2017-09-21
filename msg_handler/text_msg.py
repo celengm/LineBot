@@ -787,8 +787,8 @@ class helper(object):
         if cmd not in self.system_data.helper_cmd_dict:
             return error.main.invalid_thing(u'指令', cmd)
 
-        max_prm = self.system_data.sys_cmd_dict[cmd].split_max
-        min_prm = self.system_data.sys_cmd_dict[cmd].split_min
+        max_prm = self.system_data.helper_cmd_dict[cmd].split_max
+        min_prm = self.system_data.helper_cmd_dict[cmd].split_min
         params = split(param_text, splitter, max_prm)
 
         if min_prm > len(params) - params.count(None):
