@@ -13,7 +13,3 @@ from .game_object_holder import (
 from .sql import (
     db_query_manager
 )
-
-from .thread_pool import (
-    pool
-)
