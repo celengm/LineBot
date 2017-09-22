@@ -36,9 +36,6 @@
     <Compile Include="bot\sql.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="bot\thread_pool.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="db\db_base.py">
       <SubType>Code</SubType>
     </Compile>

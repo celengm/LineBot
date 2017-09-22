@@ -16,7 +16,7 @@ from urlparse import urlparse
 from datetime import datetime
 from error import error
 from flask import Flask, request, url_for
-import threading
+from multiprocessing.pool import ThreadPool
 
 # import for Oxford Dictionary
 import httplib
@@ -53,6 +53,7 @@ from imgur.helpers.error import ImgurClientError
 
 # Main initialization
 app = Flask(__name__)
+handle_pool = ThreadPool(processes=4)
 
 # Databases initialization
 db_query = db_query_manager("postgres", os.environ["DATABASE_URL"], app)
@@ -157,8 +158,7 @@ def callback():
 
     # handle webhook body
     try:
-        HandleThread = threading.Thread(target=handler.handle, args=(body, signature))
-        HandleThread.start()
+        handle_pool.apply(handler.handle, args=(body, signature))
     except exceptions.InvalidSignatureError:
         abort(400)
 
