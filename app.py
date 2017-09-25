@@ -703,26 +703,19 @@ def auto_reply_system(token, keyword, is_sticker_kw, src, is_kw_pic_sha=False):
 
     res = kwd.get_reply(keyword, is_sticker_kw, is_kw_pic_sha)
     if res is not None:
-        msg_track.log_message_activity(line_api_proc.source_channel_id(src), msg_event_type.recv_stk_repl if is_sticker_kw else msg_event_type.recv_txt_repl)
+        msg_track.log_message_activity(line_api_proc.source_channel_id(src), 
+                                       msg_event_type.recv_stk_repl if is_sticker_kw else msg_event_type.recv_txt_repl)
         result = res[0]
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'), result[int(kwdict_col.is_pic_reply)])
 
         if result[int(kwdict_col.is_pic_reply)]:
+            reply_object_list = [ImageSendMessage(original_content_url=reply_obj['main'], preview_image_url=reply_obj['main'])]
+
             if reply_obj['attachment'] is not None:
-                api_reply(token, TemplateSendMessage(
-                    alt_text=u'(圖片/貼圖回覆)\n{}\n\n回覆圖片URL: {}\n關鍵字ID: {}'.format(
-                        reply_obj['attachment'],
-                        reply_obj['main'], 
-                        result[int(kwdict_col.id)]),
-                    template=ButtonsTemplate(
-                    text=u'{}\n\nID: {}'.format(
-                        reply_obj['attachment'],
-                        result[int(kwdict_col.id)]), 
-                    thumbnail_image_url=reply_obj['main'],
-                    actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
-            else:
-                api_reply(token, ImageSendMessage(original_content_url=reply_obj['main'],
-                                                  preview_image_url=reply_obj['main']), src)
+                reply_object_list.append(TextSendMessage(
+                    text=u'{}\n\nID: {}'.format(reply_obj['attachment'], result[int(kwdict_col.id)])))
+                
+            api_reply(token, reply_object_list, src)
             return True
         else:
             api_reply(token, 
