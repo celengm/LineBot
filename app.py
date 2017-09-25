@@ -721,7 +721,8 @@ def auto_reply_system(token, keyword, is_sticker_kw, src, is_kw_pic_sha=False):
                     thumbnail_image_url=reply_obj['main'],
                     actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
             else:
-                api_reply(token, ImageSendMessage(original_content_url=reply_obj['main']), src)
+                api_reply(token, ImageSendMessage(original_content_url=reply_obj['main'],
+                                                  preview_image_url=reply_obj['main']), src)
             return True
         else:
             api_reply(token, 
