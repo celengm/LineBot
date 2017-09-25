@@ -37,7 +37,7 @@ from linebot import (
     LineBotApi, WebhookHandler, exceptions
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, 
     SourceUser, SourceGroup, SourceRoom,
     TemplateSendMessage, ConfirmTemplate, MessageTemplateAction,
     ButtonsTemplate, URITemplateAction, PostbackTemplateAction,
@@ -707,20 +707,21 @@ def auto_reply_system(token, keyword, is_sticker_kw, src, is_kw_pic_sha=False):
         result = res[0]
         reply_obj = kw_dict_mgr.split_reply(result[int(kwdict_col.reply)].decode('utf-8'), result[int(kwdict_col.is_pic_reply)])
 
-        if result[int(kwdict_col.is_pic_reply)]:                                                                         
-            api_reply(token, TemplateSendMessage(
-                alt_text=u'(圖片/貼圖回覆)\n{}回覆圖片URL: {}\n關鍵字ID: {}'.format(
-                    u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(
-                        reply_obj['attachment']),
+        if result[int(kwdict_col.is_pic_reply)]:
+            if reply_obj['attachment'] is not None:
+                api_reply(token, TemplateSendMessage(
+                    alt_text=u'(圖片/貼圖回覆)\n{}\n\n回覆圖片URL: {}\n關鍵字ID: {}'.format(
+                        reply_obj['attachment'],
                         reply_obj['main'], 
                         result[int(kwdict_col.id)]),
-                template=ButtonsTemplate(
-                    text=u'{}ID: {}'.format(
-                        u'' if reply_obj['attachment'] is None else u'{}\n\n'.format(
-                            reply_obj['attachment']),
-                            result[int(kwdict_col.id)]), 
+                    template=ButtonsTemplate(
+                    text=u'{}\n\nID: {}'.format(
+                        reply_obj['attachment'],
+                        result[int(kwdict_col.id)]), 
                     thumbnail_image_url=reply_obj['main'],
                     actions=[URITemplateAction(label=u'原始圖片', uri=reply_obj['main'])])), src)
+            else:
+                api_reply(token, ImageSendMessage(original_content_url=reply_obj['main']), src)
             return True
         else:
             api_reply(token, 
