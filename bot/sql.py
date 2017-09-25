@@ -35,7 +35,6 @@ class db_query_manager(object):
             elif ex.message == 'can\'t execute an empty query':
                 result = None
             else:
-                self.work_queue.task_done()
                 raise ex
         except psycopg2.InternalError as uiex:
             text = uiex.message
