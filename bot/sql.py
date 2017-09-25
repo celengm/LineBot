@@ -77,6 +77,7 @@ class db_query_manager(object):
             host=self.url.hostname,
             port=self.url.port
         )
+        self.conn.autocommit = True
         self.cur = self.conn.cursor()
 
 
