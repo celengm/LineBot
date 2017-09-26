@@ -20,8 +20,19 @@ class oxr(object):
 
     def __init__(self, app_id):
         self._app_id = app_id
+        self._app_available = True
+
+        try:
+            usage_dict = self.get_usage_dict()['data']['usage']
+            self.request_remaining = usage_dict['requests_remaining']
+            self.days_remaining = usage_dict['days_remaining']
+        except KeyError:
+            self._app_available = False
 
     def _send_request_get_dict(self, url, dict=None):
+        if not self._app_available:
+            raise ValueError('App not available cause by usage data getting error (in init)')
+
         if dict is None:
             dict = {}
 
@@ -31,6 +42,7 @@ class oxr(object):
         url = '{}?{}'.format(url, url_parameter)
 
         return_json = requests.get(url).json(object_pairs_hook=OrderedDict)
+        self.request_remaining = self.request_remaining - 1
 
         if return_json is not None:
             if 'error' in return_json and return_json.get('error', True):
@@ -137,10 +149,10 @@ class oxr(object):
         return_str += u'\n每{}更新一次資訊'.format(usage_plan_json.get('update_frequency'))
         
         usage_stats_json = usage_dict['usage']
-        return_str += u'\n本月已使用{}次'.format(usage_stats_json.get('requests'))
-        return_str += u'\n本月剩餘{}次'.format(usage_stats_json.get('requests_remaining'))
-        return_str += u'\n此方案可使用{}次'.format(usage_stats_json.get('requests_quota'))
-        return_str += u'\n還有{}日歸零使用次數'.format(usage_stats_json.get('days_remaining'))
+        return_str += u'\n本月已使用{}次'.format(usage_stats_json.get('requests', 'Error'))
+        return_str += u'\n本月剩餘{}次'.format(usage_stats_json.get('requests_remaining', 'Error'))
+        return_str += u'\n此方案可使用{}次'.format(usage_stats_json.get('requests_quota', 'Error'))
+        return_str += u'\n還有{}日歸零使用次數'.format(usage_stats_json.get('days_remaining', 'Error'))
 
         return return_str
 
@@ -182,10 +194,13 @@ class oxr(object):
         source_full = available_dict.get(source, u'(無資料)')
 
         return {'result': exchange_amt, 
-                'string': u'{} {} ({})\n↓\n{} {} ({})\n\n根據{} (UTC)時的匯率計算。'.format(
+                'string': u'{} {} ({})\n↓\n{} {} ({})\n\n根據{} (UTC)時的匯率計算。\n{}'.format(
                     amount, source, source_full,
                     exchange_amt, target, target_full,
-                    timestamp)}
+                    timestamp, self.get_available_str())}
+
+    def get_available_str():
+        return u'於{}天內還可以使用{}次。'.format(self.days_remaining, self.request_remaining)
 
     @staticmethod
     def is_legal_symbol_text(symbol_text):
