@@ -756,7 +756,7 @@ class text_msg(object):
             if not system.string_can_be_int(historical_date) and not len(historical_date) == 8:
                 text = error.main.invalid_thing_with_correct_format(u'日期', u'8位數整數，代表(年年年年月月日日)', historical_date)
             elif not tool.curr_exc.oxr.is_legal_symbol_text(target_symbol):
-                text = error.main.invalid_thing_with_correct_format(u'貨幣單位', u'3字元貨幣代號，多貨幣時以逗號分隔', target_symbol)
+                text = error.main.invalid_thing_with_correct_format(u'貨幣單位', u'3字元貨幣代號，多貨幣時以空格分隔', target_symbol)
             else:
                 data_dict = oxr_client.get_historical_dict(historical_date, target_symbol)
                 text = tool.curr_exc.oxr.historical_str(data_dict)
