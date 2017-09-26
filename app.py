@@ -27,7 +27,7 @@ import json
 from db import kw_dict_mgr, kwdict_col, group_ban, gb_col, message_tracker, msg_track_col, msg_event_type
 
 # tool import
-from tool import txt_calc
+import tool
 
 # games import
 import game
@@ -112,6 +112,13 @@ if imgur_client_secret is None:
     sys.exit(1)
 imgur_api = imgur_proc(ImgurClient(imgur_client_id, imgur_client_secret))
 
+# currency exchange api
+oxr_app_id = os.getenv('OXR_APP_ID', None)
+if oxr_app_id is None:
+    print 'app id of open exchange (oxr) is not defined in environment variables.'
+    sys.exit(1)
+oxr_client = tool.curr_exc.oxr(oxr_app_id)
+
 # Oxford Dictionary Environment initialization
 oxford_dict_obj = msg_handler.oxford_dict('en')
 
@@ -130,7 +137,7 @@ game_executor = msg_handler.game_msg(game_data, line_api)
 img_executor = msg_handler.img_msg(line_api, imgur_api, static_tmp_path, kwd)
 
 # Tool instance initialization
-str_calc = txt_calc.text_calculator(20.0)
+str_calc = tool.txt_calc.text_calculator(20.0)
 
 # function for create tmp dir for download content
 def make_tmp_dir():
@@ -353,6 +360,11 @@ def handle_text_message(event):
                     text = command_executor.T(src, params)
 
                     api_reply(token, TextSendMessage(text=text), src)
+                # CURRENCY exchange
+                elif cmd == 'C':
+                    text = command_executor.C(src, params, oxr_client)
+
+                    api_reply(token, TextSendMessage(text=text), src)
                 else:
                     sys_data.sys_cmd_dict[cmd].count -= 1
             elif head == 'HELP':
@@ -444,8 +456,7 @@ def handle_text_message(event):
     except exceptions.LineBotApiError as ex:
         text = u'開機時間: {}\n\n'.format(sys_data.boot_up)
         text += u'LINE API發生錯誤，狀態碼: {}\n\n'.format(ex.status_code)
-        for err in ex.error.details:
-            text += u'錯誤內容: {}\n錯誤訊息: {}\n'.format(err.property, err.message.decode("utf-8"))
+        text += u'錯誤內容: {}'.format(ex.error.as_json_string()) 
 
         error_msg = webpage_generator.rec_error(text, traceback.format_exc().decode('utf-8'), line_api_proc.source_channel_id(src))
         api_reply(token, TextSendMessage(text=error_msg), src)

@@ -61,7 +61,8 @@ _sys_cmd_dict = {'S': _command(1, 1, True),
                 'RD': _command(1, 2, False),
                 'STK': _command(0, 0, False),
                 'PIC': _command(0, 0, False),
-                'T': _command(1, 1, False)}
+                'T': _command(1, 1, False),
+                'C': _command(0, 3, False)}
 
 _game_cmd_dict = {'RPS': _command(0, 4, False)}
 
@@ -241,27 +242,28 @@ class imgur_proc(object):
 
     @property
     def user_limit(self):
-        return self._imgur_api.credits['UserLimit']
+        return int(self._imgur_api.credits['UserLimit'])
 
     @property
     def user_remaining(self):
-        return self._imgur_api.credits['UserRemaining']
+        return int(self._imgur_api.credits['UserRemaining'])
 
     @property
     def user_reset(self):
         """UNIX EPOCH @UTC"""
-        return self._imgur_api.credits['UserReset']
+        return datetime.fromtimestamp(self._imgur_api.credits['UserReset'])
 
     @property
     def client_limit(self):
-        return self._imgur_api.credits['ClientLimit']
+        return int(self._imgur_api.credits['ClientLimit'])
 
     @property
     def client_remaining(self):
-        return self._imgur_api.credits['ClientRemaining']
+        return int(self._imgur_api.credits['ClientRemaining'])
 
 
-
+def left_alphabet(s):
+    return filter(str.isalpha, s)
 
 def string_can_be_int(s):
     try:

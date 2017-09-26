@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "LineBot", "LineBot.pyproj", "{0BB36A2F-D020-4A60-9E1B-191BCB75C539}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "LineBotLocalTest", "..\LineBotLocalTest\LineBotLocalTest.pyproj", "{BBFA7137-91EE-41F3-B946-A78B02030EBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +15,13 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0BB36A2F-D020-4A60-9E1B-191BCB75C539}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0BB36A2F-D020-4A60-9E1B-191BCB75C539}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBFA7137-91EE-41F3-B946-A78B02030EBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBFA7137-91EE-41F3-B946-A78B02030EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DF43EE30-B2F0-40AA-AF93-8871DAA10EA2}
 	EndGlobalSection
 EndGlobal

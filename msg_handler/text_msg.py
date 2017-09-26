@@ -5,6 +5,8 @@ import urllib
 from urlparse import urlparse
 import requests
 from datetime import datetime, timedelta
+from collections import OrderedDict
+import socket
 
 from flask import request, url_for
 import hashlib 
@@ -31,6 +33,7 @@ from bot.system import line_api_proc, system_data, string_can_be_float, string_c
 
 # tool import
 from tool import mff, random_gen
+import tool.curr_exc
 from db.msg_track import msg_event_type
 
 class text_msg(object):
@@ -409,8 +412,6 @@ class text_msg(object):
                 text += u'\n計算機 - {}'.format(self.system_data.helper_cmd_dict['CALC'].count)
                 text += u'\n\n【小遊戲相關】\n猜拳遊戲數量 - {}\n猜拳次數 - {}'.format(self.game_object.rps_instance_count, self.system_data.game_cmd_dict['RPS'].count)
             elif category == 'IMG':
-                import socket
-                 
                 ip_address = socket.gethostbyname(socket.getfqdn(socket.gethostname()))
                 
                 user_limit = self.imgur_api_proc.user_limit
@@ -447,8 +448,10 @@ class text_msg(object):
             if line_api_proc.is_valid_room_group_id(gid):
                 group_detail = self.gb.get_group_by_id(gid)
 
-                uids = {u'管理員': group_detail[int(gb_col.admin)], u'副管I': group_detail[int(gb_col.moderator1)], 
-                        u'副管II': group_detail[int(gb_col.moderator2)], u'副管III': group_detail[int(gb_col.moderator3)]}
+                uids = OrderedDict([(u'管理員', group_detail[int(gb_col.admin)]), 
+                                    (u'副管I', group_detail[int(gb_col.moderator1)]), 
+                                    (u'副管II', group_detail[int(gb_col.moderator2)]), 
+                                    (u'副管III', group_detail[int(gb_col.moderator3)])])
 
                 group_tracking_data = self.msg_trk.get_data(gid)
                 text = message_tracker.entry_detail(group_tracking_data, self.gb)
@@ -732,6 +735,46 @@ class text_msg(object):
             text = error.main.lack_of_thing(u'參數')
         
         return urllib.quote(text)
+
+    def C(self, src, params, oxr_client):
+        if params[3] is not None:
+            amount = params[1]
+            source_currency = params[2]
+            target_currency = params[3]
+
+            if not system.string_can_be_float(amount):
+                text = error.main.invalid_thing_with_correct_format(u'轉換值', u'整數或小數', amount)
+            else:
+                text = oxr_client.convert(source_currency, target, amount)
+        elif params[2] is not None:
+            historical_date = params[1]
+            target_symbol = params[2]
+
+            if not system.string_can_be_int(historical_date) and not len(historical_date) == 8:
+                text = error.main.invalid_thing_with_correct_format(u'日期', u'8位數整數，代表(年年年年月月日日)', historical_date)
+            elif not tool.curr_exc.oxr.is_legal_symbol_text(target_symbol):
+                text = error.main.invalid_thing_with_correct_format(u'貨幣單位', u'3字元貨幣代號，多貨幣時以逗號分隔', target_symbol)
+            else:
+                data_dict = oxr_client.get_historical_dict(historical_date, target_symbol)
+                text = tool.curr_exc.oxr.historical_str(data_dict)
+        elif params[1] is not None:
+            param = params[1]
+            if param == '$':
+                available_currencies_dict = oxr_client.get_available_currencies_dict()
+                text = tool.curr_exc.oxr.available_currencies_str(available_currencies_dict)
+            elif system.string_can_be_int(param) and len(param) == 8:
+                historical_all_dict = oxr_client.get_historical_dict(param)
+                text = tool.curr_exc.oxr.historical_str(historical_all_dict)
+            elif tool.curr_exc.oxr.is_legal_symbol_text(param):
+                latset_dict = oxr_client.get_latest_dict(param)
+                text = tool.curr_exc.oxr.latest_str(latset_dict)
+            else:
+                text = error.main.incorrect_param(u'參數1', u'貨幣符號($)、希望幣種(NTD, USD) 或 希望歷史時間(20170505)')
+        else:
+            latset_dict = oxr_client.get_latest_dict()
+            text = tool.curr_exc.oxr.latest_str(latset_dict)
+
+        return text
 
 
     def split_verify(self, cmd, splitter, param_text):

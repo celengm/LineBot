@@ -36,6 +36,9 @@
     <Compile Include="bot\sql.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tool\curr_exc\exceptions.py" />
+    <Compile Include="tool\curr_exc\exchange.py" />
+    <Compile Include="tool\curr_exc\__init__.py" />
     <Compile Include="db\db_base.py">
       <SubType>Code</SubType>
     </Compile>
@@ -116,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bot\" />
+    <Folder Include="tool\curr_exc\" />
     <Folder Include="db\" />
     <Folder Include="game\" />
     <Folder Include="imgur\" />

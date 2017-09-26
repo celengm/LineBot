@@ -1,0 +1,191 @@
+# -*- coding: utf-8 -*-
+
+import requests
+import urllib
+import datetime
+from collections import OrderedDict
+from bot import system
+
+import exceptions
+
+class oxr(object):
+    available_currency = []
+
+    api_url = 'https://openexchangerates.org/api/'
+    latest = 'latest.json'
+    historical = 'historical/{}.json'
+    available_currencies = 'currencies.json'
+    usage = 'usage.json'
+
+    def __init__(self, app_id):
+        self._app_id = app_id
+
+    def _send_request_get_dict(self, url, dict=None):
+        if dict is None:
+            dict = {}
+
+        dict['app_id'] = self._app_id
+
+        url_parameter = urllib.urlencode(dict)
+        url = '{}?{}'.format(url, url_parameter)
+
+        return_json = requests.get(url).json(object_pairs_hook=OrderedDict)
+
+        if return_json is not None:
+            if 'error' in return_json and return_json.get('error', True):
+                raise exceptions.CurrencyExchangeException(return_json)
+            else:
+                return return_json
+        else:
+            raise ValueError('URL request returns empty content. URL: {}'.format(url))
+
+    def get_latest_dict(self, symbols=''):
+        url = oxr.api_url + oxr.latest
+        param_dict = {'symbols': symbols, 'prettyprint': False}
+
+        json_data = self._send_request_get_dict(url, param_dict)
+
+        return json_data
+
+    @staticmethod
+    def latest_str(latest_dict):
+        return_str = u'更新時間: {}'.format(latest_dict.get('timestamp', u'N/A'))
+        
+        return_str += u'\n基底貨幣: USD(美元)\n'
+
+        rates_json = latest_dict['rates']
+        return_str += u'\n'.join([u'{}: {}'.format(sym, rate) for sym, rate in rates_json.iteritems()])
+
+        return return_str
+
+    def get_historical_dict(self, date_8dg, symbols=''):
+        param_dict = {'symbols': symbols.replace(' ', ''), 'prettyprint': False}
+        try:
+            date = datetime.date(date_8dg[0:3], date_8dg[4:5], date_8dg[6:7]).strftime('%Y-%m-%d')
+        except ValueError as e:
+            json_dict = {'error': True, 
+                         'status': 500,
+                         'message': 'Error occurred while parsing date.',
+                         'description': e.message}
+            json_data = json.dumps(json_dict)
+        else:
+            url = oxr.api_url + oxr.historical.format(date)
+            json_data = self._send_request_get_dict(url, param_dict)
+        
+
+        return json_data
+
+    @staticmethod
+    def historical_str(historical_dict):
+        return_str = u'歷史匯率 ({})'.format(historical_dict.get('timestamp', u'N/A'))
+        
+        return_str += u'\n基底貨幣: USD(美元)\n'
+
+        rates_json = historical_dict['rates']
+        return_str += u'\n'.join([u'{}: {}'.format(sym, rate) for sym, rate in rates_json.iteritems()])
+
+        return return_str
+
+    def get_available_currencies_dict(self):
+        url = oxr.api_url + oxr.available_currencies
+        param_dict = {'prettyprint': False}
+
+        json_data = self._send_request_get_dict(url, param_dict)
+
+        return json_data
+
+    @staticmethod
+    def available_currencies_str(available_currencies_dict):
+        return_str = u'可用貨幣:\n'
+
+        return_str += u'\n'.join([u'{} - {}'.format(sym, name) for sym, name in available_currencies_dict.iteritems()])
+
+        return return_str
+
+    def get_usage_dict(self):
+        url = oxr.api_url + oxr.usage
+        param_dict = {'prettyprint': False}
+
+        json_data = self._send_request_get_dict(url, param_dict)
+
+        return json_data
+
+    @staticmethod
+    def usage_str(usage_dict):
+        return_str = u'狀態: {}'.format(usage_dict.get('status', u'(Error)'))
+        
+        usage_plan_json = usage_dict['plan']
+        return_str += u'\n方案: {} ({})'.format(usage_plan_json.get('name'), usage_plan_json.get('quota'))
+        return_str += u'\n每{}更新一次資訊'.format()
+
+        usage_stats_json = usage_dict['usage']
+        return_str += u'\n本月已使用{}次'.format(usage_stats_json.get('requests'))
+        return_str += u'\n本月剩餘{}次'.format(usage_stats_json.get('requests_remaining'))
+        return_str += u'\n此方案可使用{}次'.format(usage_stats_json.get('requests_quota'))
+        return_str += u'\n還有{}日歸零使用次數'.format(usage_stats_json.get('days_remaining'))
+
+        return return_str
+
+    def convert(self, source, target, amount=1, json_dict=None):
+        """return ['result'] and ['string']"""
+        symbol_not_exist = lambda symbol: u'找不到貨幣單位{}的相關資料'.format(symbol)
+        available_dict = self.get_available_currencies_dict()
+
+        if json_dict is None:
+            if target not in available_dict:
+                return {'result': -1, 'string': symbol_not_exist(target)}
+            elif source not in available_dict:
+                return {'result': -1, 'string': symbol_not_exist(source)}
+
+            data_dict = self.get_latest_dict(','.join([source, target]))['rates']
+        else:
+            rates_json = json_dict['rates']
+            currency = [source, target]
+            data_dict = {key_to_save: rates_json[key_to_save] for key_to_save in currency}
+
+        try:
+            target_rate = data_dict[target]
+            source_rate = data_dict[source]
+        except KeyError as e:
+            return {'result': -1, 'string': symbol_not_exist(e.message)}
+
+        exchange_rate = target_rate / float(source_rate)
+        exchange_amt = exchange_rate * float(amount)
+
+        target_full = available_dict.get(target, u'(無資料)')
+        source_full = available_dict.get(source, u'(無資料)')
+
+        return {'result': exchange_amt, 
+                'string': u'{} {} ({})\n↓\n{} {} ({})'.format(
+                    amount, source, source_full,
+                    exchange_amt, target, target_full)}
+
+    @staticmethod
+    def is_legal_symbol_text(symbol_text):
+        symbol_text = symbol_text.replace(' ', '')
+        symbol_length = len(system.left_alphabet(symbol_text))
+        if symbol_length == 3:
+            return True
+        elif symbol_length > 3 and symbol_length / 3 - 1 == symbol_text.count(',') and symbol_length % 3 == 0:
+            return True
+        else:
+            return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
