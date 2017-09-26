@@ -21,6 +21,8 @@ class oxr(object):
     def __init__(self, app_id):
         self._app_id = app_id
         self._app_available = True
+        self.request_remaining = -1
+        self.days_remaining = -1
 
         try:
             usage_dict = self.get_usage_dict()['data']['usage']
