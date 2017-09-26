@@ -49,7 +49,13 @@ class oxr(object):
 
     @staticmethod
     def latest_str(latest_dict):
-        return_str = u'更新時間: {}'.format(latest_dict.get('timestamp', u'N/A'))
+        date = historical_dict.get('timestamp', None)
+        if date is None:
+            date_text = u'N/A'
+        else:
+            date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
+
+        return_str = u'更新時間: {}'.format(date_text)
         
         return_str += u'\n基底貨幣: USD(美元)\n'
 
@@ -77,7 +83,13 @@ class oxr(object):
 
     @staticmethod
     def historical_str(historical_dict):
-        return_str = u'歷史匯率 ({})'.format(historical_dict.get('timestamp', u'N/A'))
+        date = historical_dict.get('timestamp', None)
+        if date is None:
+            date_text = u'N/A'
+        else:
+            date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
+
+        return_str = u'歷史匯率 ({})'.format(date_text)
         
         return_str += u'\n基底貨幣: USD(美元)\n'
 
