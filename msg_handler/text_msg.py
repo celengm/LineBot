@@ -324,7 +324,7 @@ class text_msg(object):
 
         return text
 
-    def P(self, src, params):
+    def P(self, src, params, oxr_client):
         wrong_param1 = error.main.invalid_thing_with_correct_format(u'參數1', u'MSG、KW、IMG或SYS', params[1])
 
         if params[1] is not None:
@@ -426,9 +426,12 @@ class text_msg(object):
                 text += u'連結IP: {}\n'.format(ip_address)
                 text += u'IP可用額度: {} ({:.2%})\n'.format(user_remaining, float(user_remaining) / float(user_limit))
                 text += u'IP上限額度: {}\n'.format(user_limit)
-                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format((datetime.fromtimestamp(float(user_reset)) + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
+                text += u'IP積分重設時間: {} (UTC+8)\n\n'.format((user_reset + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
                 text += u'目前API擁有額度: {} ({:.2%})\n'.format(client_remaining, float(client_remaining) / float(client_limit))
                 text += u'今日API上限額度: {}'.format(client_limit)
+            elif category == 'EXC':
+                usage_dict = oxr_client.get_usage_dict()
+                text = tool.curr_exc.oxr.usage_str(usage_dict)
             else:
                 text = wrong_param1
         else:

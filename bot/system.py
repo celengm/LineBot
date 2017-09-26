@@ -250,7 +250,7 @@ class imgur_proc(object):
 
     @property
     def user_reset(self):
-        """UNIX EPOCH @UTC"""
+        """UNIX EPOCH @UTC <Type 'datetime'>"""
         return datetime.fromtimestamp(self._imgur_api.credits['UserReset'])
 
     @property

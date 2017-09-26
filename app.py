@@ -312,7 +312,7 @@ def handle_text_message(event):
                     api_reply(token, TextSendMessage(text=text), src)
                 # SPECIAL record
                 elif cmd == 'P':
-                    text = command_executor.P(src, params)
+                    text = command_executor.P(src, params, oxr_client)
 
                     api_reply(token, TextSendMessage(text=text), src)
                 # GROUP ban basic (info)
