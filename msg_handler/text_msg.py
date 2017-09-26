@@ -90,7 +90,7 @@ class text_msg(object):
                  
                 if action_kw != 'PIC':
                     results = None
-                    text = error.main.incorrect_param(u'參數1', u'STK')
+                    text = error.main.incorrect_param(u'參數1', u'PIC')
                 elif not is_stk_int and not is_kw_pic_hash:
                     results = None
                     text = error.main.incorrect_param(u'參數2', u'整數數字或共計56字元的16進制SHA224檔案雜湊碼')
