@@ -55,7 +55,7 @@ class oxr(object):
         else:
             date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
 
-        return_str = u'更新時間: {}'.format(date_text)
+        return_str = u'更新時間: {} (UTC)'.format(date_text)
         
         return_str += u'\n基底貨幣: USD(美元)\n'
 
@@ -89,7 +89,7 @@ class oxr(object):
         else:
             date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
 
-        return_str = u'歷史匯率 ({})'.format(date_text)
+        return_str = u'歷史匯率 ({} UTC)'.format(date_text)
         
         return_str += u'\n基底貨幣: USD(美元)\n'
 
