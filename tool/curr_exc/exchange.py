@@ -124,6 +124,7 @@ class oxr(object):
 
     @staticmethod
     def usage_str(usage_dict):
+        usage_dict = usage_dict['data']
         return_str = u'狀態: {}'.format(usage_dict.get('status', u'(Error)'))
         
         usage_plan_json = usage_dict['plan']
