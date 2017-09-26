@@ -49,7 +49,7 @@ class oxr(object):
 
     @staticmethod
     def latest_str(latest_dict):
-        date = historical_dict.get('timestamp', None)
+        date = latest_dict.get('timestamp', None)
         if date is None:
             date_text = u'N/A'
         else:
