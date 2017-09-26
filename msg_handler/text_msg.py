@@ -325,7 +325,7 @@ class text_msg(object):
         return text
 
     def P(self, src, params, oxr_client):
-        wrong_param1 = error.main.invalid_thing_with_correct_format(u'參數1', u'MSG、KW、IMG或SYS', params[1])
+        wrong_param1 = error.main.invalid_thing_with_correct_format(u'參數1', u'MSG、KW、IMG、SYS或EXC', params[1])
 
         if params[1] is not None:
             category = params[1]

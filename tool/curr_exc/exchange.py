@@ -182,22 +182,3 @@ class oxr(object):
             return True
         else:
             return False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
