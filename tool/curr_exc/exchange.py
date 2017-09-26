@@ -68,7 +68,7 @@ class oxr(object):
     def get_historical_dict(self, date_8dg, symbols=''):
         param_dict = {'symbols': ','.join(symbols.split(' ')), 'prettyprint': False}
         try:
-            date = datetime.date(int(date_8dg[0:3]), int(date_8dg[4:5]), int(date_8dg[6:7])).strftime('%Y-%m-%d')
+            date = datetime.date(int(date_8dg[0:4]), int(date_8dg[4:6]), int(date_8dg[6:8])).strftime('%Y-%m-%d')
         except ValueError as e:
             json_data = {'error': True, 
                          'status': 500,
