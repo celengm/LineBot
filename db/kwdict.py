@@ -311,8 +311,7 @@ class kw_dict_mgr(db_base_obj):
         creator_profile = line_api_proc.profile(entry_row[int(kwdict_col.creator)])
         detailed += u'\n製作者LINE使用者名稱:\n{}\n'.format(error.main.line_account_data_not_found() if creator_profile is None else creator_profile.display_name)
         detailed += u'製作者LINE UUID:\n{}\n'.format(entry_row[int(kwdict_col.creator)])
-        print type(entry_row[int(kwdict_col.created_time)])
-        detailed += u'製作時間:\n{}'.format(entry_row[int(kwdict_col.created_time)])
+        detailed += u'製作時間:\n{}'.format(entry_row[int(kwdict_col.created_time)] + timedelta(hours=8))
 
         if entry_row[int(kwdict_col.deletor)] is not None:
             deletor_profile = line_api_proc.profile(entry_row[int(kwdict_col.deletor)]) 
