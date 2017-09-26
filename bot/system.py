@@ -263,7 +263,7 @@ class imgur_proc(object):
 
 
 def left_alphabet(s):
-    return filter(str.isalpha, s)
+    return filter(unicode.isalpha, unicode(s))
 
 def string_can_be_int(s):
     try:
