@@ -41,7 +41,7 @@ class oxr(object):
 
     def get_latest_dict(self, symbols=''):
         url = oxr.api_url + oxr.latest
-        param_dict = {'symbols': symbols, 'prettyprint': False}
+        param_dict = {'symbols': ','.join(symbols.split(' ')), 'prettyprint': False}
 
         json_data = self._send_request_get_dict(url, param_dict)
 
@@ -65,7 +65,7 @@ class oxr(object):
         return return_str
 
     def get_historical_dict(self, date_8dg, symbols=''):
-        param_dict = {'symbols': symbols.replace(' ', ''), 'prettyprint': False}
+        param_dict = {'symbols': ','.join(symbols.split(' ')), 'prettyprint': False}
         try:
             date = datetime.date(date_8dg[0:3], date_8dg[4:5], date_8dg[6:7]).strftime('%Y-%m-%d')
         except ValueError as e:
@@ -174,11 +174,10 @@ class oxr(object):
 
     @staticmethod
     def is_legal_symbol_text(symbol_text):
-        symbol_text = symbol_text.replace(' ', '')
-        symbol_length = len(system.left_alphabet(symbol_text))
+        symbol_length = len(system.left_alphabet(symbol_text.replace(' ', '')))
         if symbol_length == 3:
             return True
-        elif symbol_length > 3 and symbol_length / 3 - 1 == symbol_text.count(',') and symbol_length % 3 == 0:
+        elif symbol_length > 3 and symbol_length / 3 - 1 == symbol_text.count(' ') and symbol_length % 3 == 0:
             return True
         else:
             return False
