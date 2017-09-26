@@ -201,7 +201,7 @@ class oxr(object):
                     exchange_amt, target, target_full,
                     timestamp, self.get_available_str())}
 
-    def get_available_str():
+    def get_available_str(self):
         return u'於{}天內還可以使用{}次。'.format(self.days_remaining, self.request_remaining)
 
     @staticmethod
