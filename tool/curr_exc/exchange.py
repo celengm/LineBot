@@ -204,7 +204,8 @@ class oxr(object):
                     timestamp, self.get_available_str())}
 
     def get_available_str(self):
-        return u'於{}天內還可以使用{}次。'.format(self.days_remaining, self.request_remaining)
+        # decrease before request so add 1 to calibrate
+        return u'於{}天內還可以使用{}次。'.format(self.days_remaining, self.request_remaining + 1)
 
     @staticmethod
     def is_legal_symbol_text(symbol_text):
