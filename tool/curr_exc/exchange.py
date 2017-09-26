@@ -82,18 +82,24 @@ class oxr(object):
 
     @staticmethod
     def historical_str(historical_dict):
-        date = historical_dict.get('timestamp', None)
-        if date is None:
-            date_text = u'N/A'
+        if 'error' in historical_dict and historical_dict.get('error', True):
+            return_str = u'發生錯誤。狀態碼: {}\n訊息: {}\n說明: {}'.format(
+                historical_dict.get('status', 500),
+                historical_dict.get('message', u'Application Error'),
+                historical_dict.get('description', u'N/A'))
         else:
-            date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
+            date = historical_dict.get('timestamp', None)
+            if date is None:
+                date_text = u'N/A'
+            else:
+                date_text = datetime.datetime.fromtimestamp(float(date)).strftime('%Y-%m-%d %H:%M:%S')
 
-        return_str = u'歷史匯率 ({} UTC)'.format(date_text)
-        
-        return_str += u'\n基底貨幣: USD(美元)\n'
+            return_str = u'歷史匯率 ({} UTC)'.format(date_text)
+            
+            return_str += u'\n基底貨幣: USD(美元)\n'
 
-        rates_json = historical_dict['rates']
-        return_str += u'\n'.join([u'{}: {}'.format(sym, rate) for sym, rate in rates_json.iteritems()])
+            rates_json = historical_dict['rates']
+            return_str += u'\n'.join([u'{}: {}'.format(sym, rate) for sym, rate in rates_json.iteritems()])
 
         return return_str
 
