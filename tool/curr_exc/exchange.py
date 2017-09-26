@@ -129,8 +129,8 @@ class oxr(object):
         
         usage_plan_json = usage_dict['plan']
         return_str += u'\n方案: {} ({})'.format(usage_plan_json.get('name'), usage_plan_json.get('quota'))
-        return_str += u'\n每{}更新一次資訊'.format()
-
+        return_str += u'\n每{}更新一次資訊'.format(usage_plan_json.get('update_frequency'))
+        
         usage_stats_json = usage_dict['usage']
         return_str += u'\n本月已使用{}次'.format(usage_stats_json.get('requests'))
         return_str += u'\n本月剩餘{}次'.format(usage_stats_json.get('requests_remaining'))
