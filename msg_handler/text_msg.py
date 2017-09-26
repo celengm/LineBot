@@ -747,12 +747,11 @@ class text_msg(object):
 
             if not system.string_can_be_float(amount):
                 text = error.main.invalid_thing_with_correct_format(u'轉換值', u'整數或小數', amount)
+            elif not tool.curr_exc.oxr.is_legal_symbol_text(source_currency):
+                text = error.main.invalid_thing_with_correct_format(u'原始值貨幣', u'3英文字元的貨幣代號', source_currency)
+            elif not tool.curr_exc.oxr.is_legal_symbol_text(target_currency):
+                text = error.main.invalid_thing_with_correct_format(u'目標值貨幣', u'3英文字元的貨幣代號', target_currency)
             else:
-                print source_currency
-                print '='
-                print target_currency
-                print '='
-                print amount
                 text = oxr_client.convert(source_currency, target_currency, amount)['string']
         elif params[2] is not None:
             historical_date = params[1]
