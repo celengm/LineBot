@@ -204,7 +204,7 @@ class oxr(object):
                     timestamp, self.get_available_str())}
 
     def get_available_str(self):
-        return u'於約{}天內還可以使用約{}次。'.format(self.days_remaining, self.request_remaining)
+        return u'於約{days}天內還可以使用約{req}次。{days}日後次數重設為1000次。'.format(days=self.days_remaining, req=self.request_remaining)
 
     @staticmethod
     def is_legal_symbol_text(symbol_text):
