@@ -5,6 +5,8 @@ import os
 import urlparse
 import psycopg2
 
+from datetime import timedelta
+
 from error import error
 from .db_base import db_base_obj
 
