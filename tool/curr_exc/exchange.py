@@ -70,15 +70,13 @@ class oxr(object):
         try:
             date = datetime.date(int(date_8dg[0:3]), int(date_8dg[4:5]), int(date_8dg[6:7])).strftime('%Y-%m-%d')
         except ValueError as e:
-            json_dict = {'error': True, 
+            json_data = {'error': True, 
                          'status': 500,
                          'message': 'Error occurred while parsing date.',
                          'description': e.message}
-            json_data = json.dumps(json_dict)
         else:
             url = oxr.api_url + oxr.historical.format(date)
             json_data = self._send_request_get_dict(url, param_dict)
-        
 
         return json_data
 
