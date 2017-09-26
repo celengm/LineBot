@@ -748,6 +748,9 @@ class text_msg(object):
             if not system.string_can_be_float(amount):
                 text = error.main.invalid_thing_with_correct_format(u'轉換值', u'整數或小數', amount)
             else:
+                print source_currency
+                print target_currency
+                print amount
                 text = oxr_client.convert(source_currency, target_currency, amount)['string']
         elif params[2] is not None:
             historical_date = params[1]
