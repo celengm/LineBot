@@ -44,7 +44,9 @@ class oxr(object):
         url = '{}?{}'.format(url, url_parameter)
 
         return_json = requests.get(url).json(object_pairs_hook=OrderedDict)
-        self.request_remaining = self.request_remaining - 1
+
+        if not (oxr.available_currencies in url or oxr.usage in url):
+            self.request_remaining = self.request_remaining - 1
 
         if return_json is not None:
             if 'error' in return_json and return_json.get('error', True):
