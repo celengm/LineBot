@@ -150,11 +150,19 @@ class oxr(object):
             elif source not in available_dict:
                 return {'result': -1, 'string': symbol_not_exist(source)}
 
-            data_dict = self.get_latest_dict(','.join([source, target]))['rates']
+            data_json_dict = self.get_latest_dict(','.join([source, target]))
+            timestamp = data_json_dict.get('timestamp', None)
+            data_dict = data_json_dict['rates']
         else:
             rates_json = json_dict['rates']
             currency = [source, target]
+            timestamp = json_dict.get('timestamp', None)
             data_dict = {key_to_save: rates_json[key_to_save] for key_to_save in currency}
+
+        if timestamp is None:
+            timestamp = u'N/A'
+        else:
+            timestamp = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
         try:
             target_rate = data_dict[target]
@@ -169,9 +177,10 @@ class oxr(object):
         source_full = available_dict.get(source, u'(無資料)')
 
         return {'result': exchange_amt, 
-                'string': u'{} {} ({})\n↓\n{} {} ({})'.format(
+                'string': u'{} {} ({})\n↓\n{} {} ({})\n\n根據{} (UTC)時的匯率計算。'.format(
                     amount, source, source_full,
-                    exchange_amt, target, target_full)}
+                    exchange_amt, target, target_full,
+                    timestamp)}
 
     @staticmethod
     def is_legal_symbol_text(symbol_text):
