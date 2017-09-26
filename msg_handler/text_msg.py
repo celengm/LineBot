@@ -668,6 +668,9 @@ class text_msg(object):
                 elif int(scout_count) > 999999:
                     text = error.main.invalid_thing_with_correct_format(u'參數2(抽籤次數)', u'小於999999的整數', scout_count)
                 else:
+                    opportunity = int(opportunity)
+                    scout_count = int(scout_count)
+
                     for i in range(int(scout_count)):
                         result = random_gen.random_drawer.draw_probability(float(opportunity) / 100.0)
                         if result:
@@ -677,8 +680,8 @@ class text_msg(object):
                     text = u'抽籤機率【{}%】\n抽籤結果【中{}次 | 失{}次】\n實際中率【{:.2%}】\n中1+機率【{:.2%}】\n中2+機率【{:.2%}】'.format(
                         opportunity, shot_count, miss_count, 
                         shot_count / float(scout_count), 
-                        1 - (1 - float(opportunity) / 100) ** scout_count,
-                        1 - (1 - float(opportunity) / 100) ** (scout_count - 1) * opportunity)
+                        1 - (1 - float(opportunity) / 100.0) ** scout_count,
+                        1 - (1 - float(opportunity) / 100.0) ** (scout_count - 1) * opportunity)
             else:
                 start_index = params[1]
                 end_index = params[2]
