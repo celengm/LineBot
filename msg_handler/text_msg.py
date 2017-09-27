@@ -668,7 +668,7 @@ class text_msg(object):
                 elif int(scout_count) > 999999:
                     text = error.main.invalid_thing_with_correct_format(u'參數2(抽籤次數)', u'小於999999的整數', scout_count)
                 else:
-                    opportunity = int(opportunity) / 100.0
+                    opportunity = float(opportunity) / 100.0
                     scout_count = int(scout_count)
 
                     for i in range(int(scout_count)):
