@@ -672,7 +672,7 @@ class text_msg(object):
                     scout_count = int(scout_count)
 
                     for i in range(int(scout_count)):
-                        result = random_gen.random_drawer.draw_probability(float(opportunity) / 100.0)
+                        result = random_gen.random_drawer.draw_probability(opportunity)
                         if result:
                             shot_count += 1
                         else:
